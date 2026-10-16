@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RC522 门禁上位机——串口调试与 Web Serial</title>
+<style>
+  :root{
+    --bg:#F2F6FB; --card:#FFFFFF; --ink:#1B2A3A; --sub:#5C6F82;
+    --line:#DFE8F2; --accent:#1E6FD8; --green:#1F9D6B; --amber:#E29A2E; --red:#D64545;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:"Microsoft YaHei","PingFang SC","Segoe UI",Arial,sans-serif; line-height:1.8; font-size:15.5px;}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 18px 64px;}
+  .hero{
+    background:linear-gradient(135deg,#0A1A2A 0%,#10324F 55%,#14508A 100%);
+    border-radius:20px; color:#fff; padding:40px 44px; margin-bottom:26px;
+  }
+  .hero h1{font-size:28px; font-weight:800; margin-bottom:10px;}
+  .hero p{color:#BFD9F0; font-size:14.5px; max-width:680px;}
+  .chapter{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:32px 40px; margin-bottom:24px;}
+  .chap-no{display:inline-block; background:linear-gradient(135deg,#1E6FD8,#37A2E8); color:#fff; font-size:12px; letter-spacing:2px; font-weight:700; border-radius:6px; padding:3px 12px; margin-bottom:10px;}
+  .chap-title{font-size:22px; font-weight:800; margin-bottom:6px; color:#0E2A45;}
+  .chap-lead{color:var(--sub); font-size:14px; margin-bottom:20px;}
+  h3{font-size:17px; font-weight:700; margin:24px 0 10px; color:#0E2A45;}
+  h4{font-size:15px; font-weight:700; margin:18px 0 8px; color:#0E2A45;}
+  p{margin:8px 0;}
+  .c{font-family:Consolas,"Courier New",monospace; color:var(--accent); font-weight:600;}
+  .note{background:#EDF5FE; border-left:4px solid var(--accent); border-radius:12px; padding:12px 16px; margin:14px 0; font-size:14px; color:#15508F;}
+  .tip{background:#FFF6E8; border-left:4px solid var(--amber); border-radius:12px; padding:12px 16px; margin:14px 0; font-size:14px; color:#6B4D0A;}
+  .warn{background:#FDECEC; border-left:4px solid var(--red); border-radius:12px; padding:12px 16px; margin:14px 0; font-size:14px; color:#8F2A2A;}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.8px;}
+  th,td{border:1px solid var(--line); padding:8px 11px; text-align:left; vertical-align:top;}
+  th{background:#EEF4FB; font-weight:700; color:#0E2A45;}
+  tr:nth-child(even) td{background:#FAFBFD;}
+  pre.code{
+    background:#14202E; color:#D7E2EE; border-radius:12px; padding:15px 18px;
+    margin:14px 0; overflow-x:auto; font-size:13px; line-height:1.7;
+    font-family:Consolas,"Courier New",monospace;
+  }
+  pre.code .cm{color:#7F8B9A;} pre.code .kw{color:#7FDBAA;} pre.code .fn{color:#7FDBAA;}
+  pre.code .st{color:#FFCB8B;} pre.code .nm{color:#C3E88D;} pre.code .ty{color:#C792EA;}
+  pre.code .nu{color:#F78C6C;} pre.code .co{color:#9ECBFF;}
+  .step{display:flex; gap:14px; margin:14px 0; align-items:flex-start;}
+  .step .no{flex:0 0 38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#1E6FD8,#37A2E8); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;}
+  .step .bd{flex:1;} .step .bd h4{margin:0 0 4px;}
+  .footer{text-align:center; color:var(--sub); font-size:12.5px; padding:20px 0; border-top:1px dashed var(--line); margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <h1>RC522 门禁上位机</h1>
+  <p>分两步调试：先用串口助手手敲命令验证协议，再用浏览器 Web Serial 打开 HTML 上位机。代码与下位机串口协议逐段解析。</p>
+</div>
+
+<!-- ====== 第一步 ====== -->
+<div class="chapter">
+  <span class="chap-no">第一步</span>
+  <div class="chap-title">串口助手调试协议</div>
+  <div class="chap-lead">不写网页，先用 SSCOM / STC-ISP 自带串口助手把命令敲一遍，确认下位机协议通了。</div>
+
+  <h3>1.1 准备工作</h3>
+  <div class="step"><div class="no">1</div><div class="bd"><h4>烧录程序</h4><p>用 STC-ISP 把 <span class="c">RC522_key</span> 工程的 hex 烧进单片机，<b>烧完关闭 STC-ISP</b>（串口被它占着，其他助手打不开）。</p></div></div>
+  <div class="step"><div class="no">2</div><div class="bd"><h4>打开串口助手</h4><p>推荐 SSCOM 或串口调试助手，选对应 COM 口，<b>波特率 9600，8 数据位，无校验，1 停止位</b>，勾选"发送新行"（每条命令末尾自动加回车换行）。</p></div></div>
+  <div class="step"><div class="no">3</div><div class="bd"><h4>按复位键</h4><p>MCU 复位后会主动输出 <span class="c">READY</span> 和 <span class="c">VER=92</span>，看到这两行说明串口通了。</p></div></div>
+
+  <h3>1.2 逐条命令测试</h3>
+  <table>
+    <tr><th>在发送框输入</th><th>预期返回</th><th>说明</th></tr>
+    <tr><td class="c">VER</td><td class="c">VER=92</td><td>查询 RC522 版本</td></tr>
+    <tr><td class="c">LST</td><td class="c">TBL=0,EA5DDD06<br>TBL=END</td><td>列出卡表</td></tr>
+    <tr><td class="c">ADD,2406BB06</td><td class="c">ACK=ADD,OK,1</td><td>添加卡到槽位1</td></tr>
+    <tr><td class="c">LST</td><td class="c">TBL=0,EA5DDD06<br>TBL=1,2406BB06<br>TBL=END</td><td>确认加进去了</td></tr>
+    <tr><td class="c">DEL,2406BB06</td><td class="c">ACK=DEL,OK,1</td><td>删除槽位1</td></tr>
+    <tr><td class="c">DEL,FFFFFFFF</td><td class="c">ACK=DEL,FAIL,NOTFOUND</td><td>删不存在的卡</td></tr>
+    <tr><td class="c">CLR</td><td class="c">ACK=CLR,OK</td><td>清空卡表</td></tr>
+    <tr><td class="c">XYZ</td><td class="c">ERR=BADCMD</td><td>非法命令</td></tr>
+  </table>
+
+  <h3>1.3 刷卡事件（MCU 主动上报）</h3>
+  <p>不用发命令，把卡往 RC522 上贴，串口会自动输出：</p>
+  <pre class="code"><span class="cm">// 授权卡</span>
+EVT=OK,UID=<span class="nu">EA5DDD06</span>,IDX=<span class="nu">0</span>
+LED=<span class="nu">1000</span>
+<span class="cm">// 5秒后</span>
+EVT=LOCK
+LED=<span class="nu">0000</span>
+
+<span class="cm">// 未授权卡</span>
+EVT=DENY,UID=<span class="nu">2406BB06</span></pre>
+
+  <div class="tip">
+    <b>关键检查点：</b>如果发命令没反应，先看有没有勾选"发送新行"——下位机靠 <span class="c">\n</span> 分割命令，没换行它会一直等。其次确认波特率是 9600，不是 115200。
+  </div>
+</div>
+
+<!-- ====== 第二步 ====== -->
+<div class="chapter">
+  <span class="chap-no">第二步</span>
+  <div class="chap-title">HTML 上位机逐段解析</div>
+  <div class="chap-lead">用 Chrome / Edge 打开上位机网页，点"连接串口"，浏览器通过 Web Serial API 直接和单片机通信。</div>
+
+  <h3>2.1 为什么用浏览器，不用 C# / Python</h3>
+  <div class="note">
+    <b>Web Serial API</b>：Chrome / Edge 从 2022 年起支持浏览器直接读写串口。打开 HTML → 点连接 → 选 COM 口 → 就能收发数据。不用装任何软件，一个 html 文件双击就能跑，学生拷贝到自己电脑也能用。
+  </div>
+
+  <h3>2.2 整体结构</h3>
+  <pre class="code"><span class="cm">// 页面三大块：</span>
+header   <span class="cm">// 连接按钮 + 状态灯 + 版本号</span>
+.grid
+  ├─ .panel  <span class="cm">// 门锁状态（4个锁图标，随 LED=xxxx 更新）</span>
+  └─ .panel  <span class="cm">// 卡号管理表格 + 添加/删除按钮</span>
+.panel   <span class="cm">// 事件日志（串口收发都打在这里）</span></pre>
+
+  <h3>2.3 连接串口（核心 5 行）</h3>
+  <pre class="code"><span class="kw">async function</span> <span class="fn">connect</span>(){
+  port = <span class="kw">await</span> navigator.serial.<span class="fn">requestPort</span>();   <span class="cm">// 弹窗选 COM 口</span>
+  <span class="kw">await</span> port.<span class="fn">open</span>({baudRate:<span class="nu">9600</span>});             <span class="cm">// 打开串口</span>
+  <span class="kw">const</span> td = <span class="kw">new</span> <span class="ty">TextDecoderStream</span>();
+  port.readable.pipeTo(td.writable);                  <span class="cm">// 收到的字节→字符串</span>
+  reader = td.readable.<span class="fn">getReader</span>();
+  <span class="kw">await</span> <span class="fn">readLoop</span>();                              <span class="cm">// 进入读循环</span>
+}</pre>
+  <p>发送命令更简单：<span class="c">writer.write("ADD,EA5DDD06\n")</span>。</p>
+
+  <h3>2.4 按行解析（最关键的一段）</h3>
+  <p>串口是字节流，没有"行"的概念。网页要自己按 <span class="c">\n</span> 切行：</p>
+  <pre class="code">lineBuf += 收到的文本;
+<span class="kw">while</span>((i = lineBuf.<span class="fn">indexOf</span>(<span class="st">'\n'</span>)) >= <span class="nu">0</span>){
+  <span class="kw">const</span> line = lineBuf.<span class="fn">slice</span>(<span class="nu">0</span>, i).<span class="fn">trim</span>();
+  lineBuf = lineBuf.<span class="fn">slice</span>(i+<span class="nu">1</span>);
+  <span class="fn">handleLine</span>(line);       <span class="cm">// 解析这一行</span>
+}</pre>
+
+  <h3>2.5 handleLine 协议分发</h3>
+  <pre class="code"><span class="kw">function</span> <span class="fn">handleLine</span>(line){
+  <span class="kw">if</span>(line.<span class="fn">startsWith</span>(<span class="st">'LED='</span>)){
+    <span class="cm">// "LED=1000" → 门锁1开，其余关</span>
+    lockState = [<span class="st">'1'</span>,<span class="st">'0'</span>,<span class="st">'0'</span>,<span class="st">'0'</span>].map(...);
+    <span class="fn">renderLocks</span>();
+  }
+  <span class="kw">if</span>(line.<span class="fn">startsWith</span>(<span class="st">'EVT=OK'</span>)){
+    <span class="cm">// "EVT=OK,UID=EA5DDD06,IDX=0"</span>
+    log(<span class="st">'授权通过 → 门锁1开启'</span>, <span class="st">'ok'</span>);
+  }
+  <span class="kw">if</span>(line.<span class="fn">startsWith</span>(<span class="st">'TBL='</span>)){
+    <span class="cm">// "TBL=0,EA5DDD06" 存入卡表；"TBL=END" 同步完成</span>
+  }
+}</pre>
+
+  <h3>2.6 按钮怎么发命令</h3>
+  <pre class="code"><span class="cm">// "添加卡"按钮</span>
+btnAdd.<span class="fn">onclick</span> = () => {
+  <span class="kw">const</span> uid = input.value.<span class="fn">trim</span>().<span class="fn">toUpperCase</span>();
+  <span class="kw">if</span>(!/^[0-9A-F]{8}$/.<span class="fn">test</span>(uid)) <span class="kw">return</span>;  <span class="cm">// 校验8位hex</span>
+  writer.<span class="fn">write</span>(<span class="st">'ADD,'</span> + uid + <span class="st">'\n'</span>);
+};</pre>
+
+  <h3>2.7 localStorage 本地记录</h3>
+  <p>网页刷新后门锁状态和卡表不丢，因为每次更新都写进浏览器 localStorage：</p>
+  <pre class="code">localStorage.<span class="fn">setItem</span>(<span class="st">'icdoor_host_v1'</span>,
+  JSON.<span class="fn">stringify</span>({lockState, cards, version}));</pre>
+
+  <div class="warn">
+    <b>常见坑：</b>file:// 直接双击打开 html，Chrome 会因为安全策略拦截 Web Serial。解决：在 html 所在目录运行 <span class="c">python -m http.server 8000</span>，然后浏览器访问 <span class="c">http://localhost:8000/RC522门禁上位机.html</span>。或者直接用 Edge 打开，Edge 对 file:// 限制较松。
+  </div>
+
+  <h3>2.8 操作流程</h3>
+  <div class="step"><div class="no">1</div><div class="bd"><h4>连接串口</h4><p>点"连接串口"→ 选 COM 口 → 看到绿灯"已连接"，MCU 版本显示 92。</p></div></div>
+  <div class="step"><div class="no">2</div><div class="bd"><h4>看门锁状态</h4><p>刷授权卡，网页上对应锁图标变绿，5 秒后自动变灰。</p></div></div>
+  <div class="step"><div class="no">3</div><div class="bd"><h4>加卡 / 删卡</h4><p>输入 8 位 UID → 添加；或在卡表点"删除"。日志区会显示 ACK=ADD,OK 等反馈。</p></div></div>
+
+  <div class="footer">RC522 门禁上位机 · 串口调试 + Web Serial · 与下位机工程 RC522_key 配套</div>
+</div>
+
+</div>
+</body>
+</html>
