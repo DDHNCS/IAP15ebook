@@ -253,7 +253,7 @@
         <text x="880" y="122" text-anchor="middle" fill="#5C6F82" font-size="11">主程序原样执行</text>
         <rect x="40" y="170" width="860" height="70" rx="12" fill="#14202E"/>
         <text x="470" y="196" text-anchor="middle" fill="#9FE6F2" font-size="13" font-weight="bold">中断 vs 子程序</text>
-        <text x="470" y="222" text-anchor="middle" fill="#D7E2EE" font-size="12.5">什么时候调用子程序是<b>确定的</b>；什么时候产生中断是<b>不确定的</b>。子程序入口由调用程序给出，中断入口地址<b>固定</b>（8n+3）；子程序无条件执行，中断要先<b>使能</b>。</text>
+        <text x="470" y="222" text-anchor="middle" fill="#D7E2EE" font-size="12.5">什么时候调用子程序是<tspan font-weight="bold">确定的</tspan>；什么时候产生中断是<tspan font-weight="bold">不确定的</tspan>。子程序入口由调用程序给出，中断入口地址<tspan font-weight="bold">固定</tspan>（8n+3）；子程序无条件执行，中断要先<tspan font-weight="bold">使能</tspan>。</text>
       </svg>
       <div class="cap">图 2-1  中断四阶段与"中断 vs 子程序"（示意）</div>
     </div>
@@ -712,20 +712,43 @@
           </marker>
         </defs>
         <circle cx="60" cy="45" r="17" fill="#1E6FD8"/><text x="60" y="50" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">1</text>
-        <rect x="95" y="22" width="790" height="46" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
-        <text x="115" y="42" fill="#33475B" font-size="13">对照中断系统框架图，梳理：中断源（INT0/P3.2）→ 标志（IE0）→ 允许（EX0+EA）→ 入口（interrupt 0）</text>
+        <rect x="95" y="22" width="790" height="52" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
+        <text x="115" y="42" fill="#33475B" font-size="13">梳理中断链路：中断源 → 标志 → 允许 → 入口</text>
+        <text x="115" y="60" fill="#5C6F82" font-size="11.5">INT0/P3.2 下降沿 → IE0 → EX0 + EA → interrupt 0</text>
         <circle cx="60" cy="110" r="17" fill="#1F9D6B"/><text x="60" y="115" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">2</text>
-        <rect x="95" y="87" width="790" height="46" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
-        <text x="115" y="115" fill="#33475B" font-size="13">设置 <b>IT0=1</b>（边沿）、<b>EX0=1</b>、<b>EA=1</b>；编写 <span class="c">interrupt 0</span> 服务函数</text>
+        <rect x="95" y="87" width="790" height="52" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
+        <text x="115" y="115" fill="#33475B" font-size="13">配置 INT0：下降沿触发 + 开两级中断</text>
+        <text x="115" y="133" fill="#5C6F82" font-size="11.5"><tspan font-weight="bold" fill="#0E2A45">IT0=1</tspan>（边沿）、<tspan font-weight="bold" fill="#0E2A45">EX0=1</tspan>、<tspan font-weight="bold" fill="#0E2A45">EA=1</tspan></text>
         <circle cx="60" cy="175" r="17" fill="#E29A2E"/><text x="60" y="180" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">3</text>
-        <rect x="95" y="152" width="790" height="46" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
-        <text x="115" y="180" fill="#33475B" font-size="13">主循环做流水移动，<b>ISR 仅翻转流向标志</b>（不直接操作 LED）</text>
+        <rect x="95" y="152" width="790" height="52" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
+        <text x="115" y="180" fill="#33475B" font-size="13">分工编写：ISR 只翻转方向标志</text>
+        <text x="115" y="198" fill="#5C6F82" font-size="11.5">主循环读 ucDir 移动 LED · 快进快出</text>
         <circle cx="60" cy="240" r="17" fill="#37C2D8"/><text x="60" y="245" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">4</text>
-        <rect x="95" y="217" width="790" height="46" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
-        <text x="115" y="245" fill="#33475B" font-size="13">按下按键触发中断，观察方向切换是否即时、可靠（去抖可选）→ 与预期一致即为通过 ✔</text>
+        <rect x="95" y="217" width="790" height="52" rx="9" fill="#F6F9FC" stroke="#C9D9E8" stroke-width="1.2"/>
+        <text x="115" y="245" fill="#33475B" font-size="13">按键验证：按一次方向反转一次</text>
+        <text x="115" y="263" fill="#5C6F82" font-size="11.5">连续快按不丢不抖，松手不影响计时 ✔</text>
       </svg>
       <div class="cap">图 6-1  任务四步法：梳理链路 → 配置中断 → 分工编写 → 按键验证</div>
     </div>
+
+    <h4>接线要点（对照图 3-1 电路，把例程 47 由 INT1 改为 INT0）</h4>
+    <table>
+      <tr><th style="width:24%;">器件</th><th style="width:20%;">接单片机</th><th>说明</th></tr>
+      <tr><td>INT0 按键（KEY）</td><td><span class="c">P3.2</span></td><td>平时被上拉为高，按下瞬间接地 → 高到低跳变（下降沿）触发 INT0，松手（上升沿）不再触发</td></tr>
+      <tr><td>LED1 ~ LED4</td><td><span class="c">P0.0 ~ P0.3</span></td><td>流水灯，低电平点亮（P0 输出取反 <span class="c">P0 = ~ucLed</span>）</td></tr>
+      <tr><td>时间基准 T1</td><td>—（内部资源）</td><td>例程 47 用 T1 查询法做 1ms 节拍、累计秒，无需外部接线</td></tr>
+      <tr><td>晶振 / 电源</td><td>开发板自带</td><td>确认主频 12.000MHz，烧录时按实际型号选择 IAP15 系列</td></tr>
+    </table>
+    <div class="note" style="border-left:4px solid #D64545; background:#FDF3F3;"><b>改动对照</b>：任务单用 <b>INT0</b>，只需改三处——<span class="c">IT1/EX1 → IT0/EX0</span>、<span class="c">interrupt 2 → interrupt 0</span>、按键引脚 <span class="c">P3.3 → P3.2</span>，其余程序（T1 秒计时、LED 移动）原样保留。</div>
+
+    <h4>操作步骤（五步完成本任务）</h4>
+    <ol style="margin:10px 0 14px 22px; padding:0; font-size:14px; line-height:1.9;">
+      <li><b>梳理链路</b>：对照中断系统框架图确认 INT0 通路——中断源（P3.2 下降沿）→ 标志（IE0）→ 允许（EX0 + EA）→ 入口（interrupt 0）。</li>
+      <li><b>改程序</b>：打开例程 47，按上面"改动对照"修改三处；把按键从 P3.3 改插到 P3.2（INT0）。</li>
+      <li><b>编译烧录</b>：STC-ISP 打开工程并编译，选择 IAP15 单片机型号与对应串口，下载程序到开发板。</li>
+      <li><b>运行验证</b>：上电后 LED 每秒右移一位；每按一次 KEY，方向<b>立即</b>反转一次（左移↔右移）；按住不放、松开旁路都不影响主程序秒计时。</li>
+      <li><b>记录验收</b>：对照下方验收标准逐项打勾；连续快按 5 次以上验证"不丢不抖、不多翻转"，并把现象写进实训报告。</li>
+    </ol>
 
     <h3>验收标准</h3>
     <table>
