@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RC522 读卡号原理分析（IAP15L2K61S2）</title>
+<style>
+  :root{--ink:#23303f;--sub:#5f6b7a;--line:#d9e1ea;--code:#24425f;
+        --blue:#185fa5;--bd:#e6f1fb;--grn:#0f6e56;--gd:#e5f4ef;
+        --red:#b23a2e;--rd:#fcecea;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f6f9;color:var(--ink);line-height:1.75;
+       font-family:"Segoe UI","Microsoft YaHei",ui-sans-serif,system-ui,sans-serif;}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 22px 90px;}
+  .hero{background:linear-gradient(135deg,#0c447c,#2270b8);color:#fff;border-radius:16px;
+        padding:22px 26px;}
+  .hero h1{margin:0 0 6px;font-size:25px;font-weight:700;}
+  .hero p{margin:0;font-size:13.5px;color:#dbe8f5;}
+  .sub{font-size:12.5px;color:var(--sub);margin:10px 2px 20px;}
+  h2{font-size:20px;color:#0c447c;border-left:5px solid var(--blue);
+     padding-left:11px;margin:32px 0 10px;}
+  h3{font-size:15px;color:#2b3f58;margin:16px 0 6px;}
+  p{margin:9px 0}
+  code{font-family:"Cascadia Code","Consolas","Courier New",monospace;font-size:.9em;
+       background:#ecf0f5;border-radius:4px;padding:1px 5px;color:var(--code);}
+  pre{background:#f8fafc;border:1px solid var(--line);border-radius:8px;
+      padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.65;
+      font-family:"Cascadia Code","Consolas","Courier New",monospace;}
+  pre .c{color:#8896a8;font-style:italic}
+  pre .k{color:#185fa5;font-weight:600}
+  pre .r{color:#b23a2e;font-weight:600}
+  pre .g{color:#0f6e56;font-weight:600}
+  .toc{background:#fff;border:1px solid var(--line);border-radius:10px;
+       padding:14px 20px;font-size:13.5px;margin:6px 0 4px;}
+  .toc b{color:#0c447c}
+  .toc ol{margin:6px 0 0;padding-left:22px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;
+        padding:15px 18px;margin:12px 0;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+  th{background:#eaf2fa;color:#24425f}
+  tr:nth-child(even) td{background:#fbfdff}
+  .ok{color:#0f6e56;font-weight:600}
+  .bad{color:#b23a2e;font-weight:600}
+  .warn{background:var(--rd);border-left:4px solid var(--red);padding:9px 14px;
+        border-radius:6px;margin:10px 0}
+  .tip{background:var(--gd);border-left:4px solid var(--grn);padding:9px 14px;
+       border-radius:6px;margin:10px 0}
+  .note{background:#fdf3e0;border-left:4px solid #c79316;padding:9px 14px;
+        border-radius:6px;margin:10px 0}
+  .flow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .fstep{flex:1 1 130px;min-width:118px;background:#f0f6fd;border:1px solid var(--line);
+         border-radius:8px;padding:8px 10px;font-size:12px}
+  .fstep b{color:#24425f}
+  .fig{text-align:center;margin:12px 0}
+  .fig svg{max-width:100%;height:auto;background:#fff;border:1px solid var(--line);
+           border-radius:10px}
+  .cap{font-size:12px;color:var(--sub);margin:6px 0 0}
+  footer{text-align:center;font-size:12px;color:#96a3b2;margin-top:46px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>RC522 IC 卡读卡号原理分析</h1>
+  <p>硬件：STC IAP15L2K61S2 · 硬件 SPI（SPI1 组）· ISO/IEC 14443A · 已实测 UID=EA5DDD06</p>
+</header>
+<div class="sub">配套源码（工作区 RC522/）：<code>main.c</code> · <code>rc522.c</code> · <code>rc522.h</code></div>
+
+<nav class="toc">
+  <b>目录</b>
+  <ol>
+    <li>读卡号到底在做什么</li>
+    <li>数据通路全景：主控 → 卡片</li>
+    <li>卡片为什么"不用电池"（无源取能）</li>
+    <li>一次寻卡对话：14443A 协议</li>
+    <li>核心命门：BitFramingReg 位长（读不出卡的真根因）</li>
+    <li>SPI 读写一个寄存器</li>
+    <li>UID 与 BCC 校验</li>
+    <li>程序分层与主循环</li>
+    <li>各命令帧格式/返回长度对照</li>
+    <li>常见坑与排查速查</li>
+  </ol>
+</nav>
+
+<h2>1 · 读卡号到底在做什么</h2>
+<p style="font-size:15px">“读卡号” = 主控通过 RC522 芯片向天线招呼 → 检测到卡 → 问它“你是谁” → 卡片把自己的 <b>UID（4 字节序列号）</b>+校验字节报回来 → 主控校验无误后打印。整个过程发生在一张<b>没有电池</b>的卡片和一块<b>蓝色小 PCB</b>之间，本质是 <b>13.56 MHz 射频场</b>里的能量与数据交换。</p>
+<div class="card">
+  <p>一次成功读卡号，在软件上只走<b>两段命令 + 一次校验</b>：</p>
+  <div class="flow">
+    <div class="fstep"><b>① 寻卡 REQA</b><br>主控问：场内有卡吗？</div>
+    <div class="fstep"><b>卡答 ATQA</b><br>回 2 字节类型；软件长度=0x10(16bit)</div>
+    <div class="fstep"><b>② 防冲突 0x93/0x20</b><br>问：报上你的 UID</div>
+    <div class="fstep"><b>卡回 UID+BCC</b><br>5 字节；长度=0x28(40bit)</div>
+  </div>
+  <div class="note"><b>先记一句核心：寻卡(REQA)用“7 位短帧”，防冲突/休眠用“完整 8 位字节”。</b>本程序早期正是把这一者弄混，导致永远读不到卡号（见第 5 节详解）。</div>
+</div>
+
+<h2>2 · 数据通路全景：主控 → 卡片</h2>
+<p>链路虽长，但从软件看就一句话：<b>主控只通过 SPI 写 RC522 的寄存器</b>。真正“发电”、调制 13.56 MHz、做 ISO14443 编解码、防冲突的，全是 RC522 芯片自己完成。主控甚至连 13.56 MHz 波形都不用产生。</p>
+<div class="fig">
+<svg width="920" height="238" viewBox="0 0 920 238" role="img" aria-label="数据通路分层图">
+<defs>
+ <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L7 5L1 9" fill="none" stroke="#7b8aa0" stroke-width="1.5"/></marker>
+ <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L7 5L1 9" fill="none" stroke="#e05a48" stroke-width="2"/></marker>
+</defs>
+<style>.n{font:600 14px sans-serif;fill:#fff}.s{font:12px sans-serif;fill:#e7f0f8}.lbl{font:12px sans-serif;fill:#4a5c6e}</style>
+<rect x="12" y="58" width="150" height="74" rx="10" fill="#1c5f93"/>
+  <text x="87" y="90" text-anchor="middle" class="n">IAP15 MCU</text>
+  <text x="87" y="110" text-anchor="middle" class="s">写寄存器(软件)</text>
+  <text x="87" y="50" text-anchor="middle" class="lbl">① 主控</text>
+<rect x="212" y="58" width="188" height="74" rx="10" fill="#3f77b0"/>
+  <text x="306" y="88" text-anchor="middle" class="n">SPI1 总线</text>
+  <text x="306" y="107" text-anchor="middle" class="s">NSS=P1.2 SCK=P1.5</text>
+  <text x="306" y="122" text-anchor="middle" class="s">MOSI=P1.3 MISO=P1.4</text>
+  <text x="306" y="50" text-anchor="middle" class="lbl">② 命令通道</text>
+<rect x="450" y="58" width="190" height="74" rx="10" fill="#1c5f93"/>
+  <text x="545" y="88" text-anchor="middle" class="n">RC522</text>
+  <text x="545" y="107" text-anchor="middle" class="s">寄存器组 + 64B FIFO</text>
+  <text x="545" y="122" text-anchor="middle" class="s">编解码/CRC/防冲突</text>
+  <text x="545" y="50" text-anchor="middle" class="lbl">③ 射频前端芯片</text>
+<rect x="666" y="58" width="90" height="74" rx="10" fill="#9a5aa0"/>
+  <text x="711" y="90" text-anchor="middle" class="n">天线</text>
+  <text x="711" y="108" text-anchor="middle" class="s">13.56MHz</text>
+  <text x="711" y="50" text-anchor="middle" class="lbl">④ PCB 线圈</text>
+<rect x="784" y="58" width="120" height="74" rx="10" fill="#2e8b6d"/>
+  <text x="844" y="90" text-anchor="middle" class="n">卡片</text>
+  <text x="844" y="110" text-anchor="middle" class="s">无电池</text>
+  <text x="844" y="50" text-anchor="middle" class="lbl">⑤ 目标</text>
+
+<line x1="164" y1="95" x2="210" y2="95" stroke="#7b8aa0" stroke-width="1.5" marker-end="url(#ar)"/>
+<line x1="402" y1="95" x2="448" y2="95" stroke="#7b8aa0" stroke-width="1.5" marker-end="url(#ar)"/>
+<line x1="642" y1="95" x2="664" y2="95" stroke="#7b8aa0" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M700 132 C 742 170, 770 175, 830 138" fill="none" stroke="#e05a48" stroke-width="2" marker-end="url(#arw)"/>
+<path d="M830 152 C 770 180, 734 176, 700 144" fill="none" stroke="#e05a48" stroke-width="2"/>
+</svg>
+<div class="cap">图 2-1　主控只写寄存器；真正驱动磁场的链路是“①→⑤”。橙色为 13.56 MHz 射频双向媒介。</div>
+</div>
+
+<h2>3 · 卡片为什么“不用电池”</h2>
+<div class="grid2">
+<div class="card">
+  <h3>能量从哪来（电磁感应取电）</h3>
+  <p>天线持续辐射 <b>13.56 MHz 交变磁场</b>。卡片内线圈 <b>LC 谐振</b>到同频率，切割磁感线产生感应电压，经整流给卡内芯片供电。电压达约 2 V 芯片即“醒来”。所以卡片无需电池。</p>
+  <p class="note">这也解释了两个现象：卡片必须<b>靠近并平行</b>于天线才供电给足（1~3 cm）；金属/大块地平面会吸收磁场从而读不到。</p>
+</div>
+<div class="card">
+  <h3>数据怎么回来（负载调制）</h3>
+  <p>卡没有功率“主动广播”，它按数据瞬间改变自身线圈负载，反射回读卡器天线端的<b>微弱幅度变化</b>。RC522 前端灵敏地解调出这些变化并还原成数据。这就是无源卡通信的标准方式。</p>
+</div>
+</div>
+
+<h2>4 · 一次寻卡对话：ISO/IEC 14443A</h2>
+<p>卡片采用 <b>ISO/IEC 14443 Type A</b>（MIFARE）协议。主控要掌握的，只是“发命令→等应答→按<code>长度</code>判断收对没”的对话。</p>
+<div class="fig">
+<svg width="900" height="248" viewBox="0 0 900 248">
+<style>.ph{font:600 13px sans-serif;fill:#fff}.ps{font:11px sans-serif;fill:#dfe9f3}
+      .tim{font:11px sans-serif;fill:#33465b}</style>
+<line x1="70" y1="30" x2="70" y2="225" stroke="#d0d9e4"/><text x="70" y="20" text-anchor="middle" class="tim" fill="#1c5f93">主控/RC522</text>
+<line x1="810" y1="30" x2="810" y2="225" stroke="#d0d9e4"/><text x="840" y="20" text-anchor="middle" class="tim" fill="#2e8b6d">卡片</text>
+
+<rect x="150" y="40" width="300" height="42" rx="8" fill="#3f77b0"/>
+  <text x="300" y="65" text-anchor="middle" class="ph">发送 REQA（0x26 / 0x52）</text>
+<rect x="540" y="118" width="200" height="42" rx="8" fill="#2e8b6d"/>
+  <text x="640" y="143" text-anchor="middle" class="ph">应答 ATQA（2B）</text>
+<rect x="150" y="176" width="330" height="42" rx="8" fill="#185FA5"/>
+  <text x="315" y="201" text-anchor="middle" class="ph">发送防冲突 0x93 0x20</text>
+<line x1="452" y1="61" x2="536" y2="61" stroke="#7b8aa0" stroke-width="1.4" marker-end="url(#ar)"/>
+<path d="M742 139 C 700 180, 500 188, 486 200" fill="none" stroke="#e0974a" stroke-width="1.6"/>
+<text x="520" y="228" font-size="11.5px" fill="#8a5a08" text-anchor="middle">卡回 UID(4B)+BCC(1B)</text>
+</svg>
+<div class="cap">图 4-1　一次 UID 读取的完整对话。注意寻卡是一条“短帧”，防冲突是“整字节帧”——正是第 5 节的关键。</div>
+</div>
+<p class="tip">“自动寻卡模式”其实就是主循环里反复执行上面这段；执行得越快，卡的应答与“刷卡体验”越接近实时。真实程序还加了<b>失败重试 3 次</b>，以容忍射频抖动带来的零星失败。</p>
+
+<h2>5 · 核心命门：BitFramingReg 位长</h2>
+<p style="font-size:15px">这是本程序早期“能读到 Ver、却永远读不到卡号”的<b>真正根因</b>。<code>BitFramingReg</code>(地址 0x0D)的低 3 位 <b>TxLastBits</b> 决定“发射帧的最后一个字节真正包含几位”。</p>
+<div class="grid2">
+<div class="card">
+  <h3 class="bad">❌ 早期：公共收发函数里统一定成 7 位</h3>
+  <pre><code><span class="c">// PcdComMF522() 对所有命令无条件执行</span>
+<span class="k">WriteRawRC</span>(<span class="g">BitFramingReg</span>, <span class="r">0x07</span>);
+
+<span class="c">// 后果：</span>
+<span class="c">// REQA(7位短帧)   → 0x07 恰好正确 ✓</span>
+<span class="r">// 防冲突0x93 0x20 → 也被按7位截断 ✗</span></code></pre>
+  <p>防冲突命令本该是<b>2 个完整 8 位字节</b>，却被当成 7 位短帧去编码。卡片收到畸形请求 → <b>不回 UID</b> → <code>PcdAnticoll</code> 稳定返回错误。</p>
+</div>
+<div class="card">
+  <h3 class="ok">✅ 修复：由各命令自行设置</h3>
+  <pre><code><span class="c">// PcdRequest()   —— 寻卡，确需7位短帧</span>
+<span class="k">WriteRawRC</span>(<span class="g">BitFramingReg</span>, <span class="r">0x07</span>);
+
+<span class="c">// PcdAnticoll() / PcdHalt() —— 完整字节</span>
+<span class="k">WriteRawRC</span>(<span class="g">BitFramingReg</span>, <span class="r">0x00</span>);</code></pre>
+  <p class="ok">实测通过：ATQA=0400 → AColl=OK → UID=EA5DDD06（BCC 校验一致）。</p>
+</div>
+</div>
+<div class="warn"><b>要命的设计点：</b>“一眼该怎么发”属于<b>命令语义</b>，必须由<b>发命令的高层 API</b>（PcdRequest / PcdAnticoll）设置；收发的公共函数只负责“搬运数据、等中断、读 FIFO”，它并不该去规定帧的位数。我早期把这个语义错误地下沉到了公共函数。</div>
+
+<h2>6 · SPI 读写一个寄存器</h2>
+<p>RC522 是 SPI 从机。主控先发一个地址字节，再跟 0~n 个数据字节即可完成读或写。</p>
+<div class="fig">
+<svg width="760" height="150" viewBox="0 0 760 150">
+<style>.bb{stroke:#c7d1dc;fill:#fff}.hb{stroke:#c7d1dc;fill:#ffe6a8}</style>
+<text x="40" y="24" font-size="13px" fill="#33465b">一帧地址字节：</text>
+<rect x="40" y="40" width="118" height="50" rx="4" class="hb"/><text x="99" y="70" text-anchor="middle" font-size="11px" font-family="monospace">bit7: 读/写</text>
+<rect x="158" y="40" width="60" height="50" rx="4" class="bb"/><text x="188" y="70" text-anchor="middle" font-size="11px" font-family="monospace">0</text>
+<rect x="218" y="40" width="300" height="50" rx="4" class="bb"/><text x="368" y="66" text-anchor="middle" font-size="11px" font-family="monospace">bit6..bit1 = 寄存器地址(6位)</text>
+<rect x="368" y="40" width="0" height="0"/>
+<rect x="518" y="40" width="120" height="50" rx="4" class="bb"/><text x="578" y="66" text-anchor="middle" font-size="11px" font-family="monospace">bit0=0</text>
+<text x="40" y="118" font-size="12px" fill="#1c5f93"><tspan font-family="monospace">读:</tspan> 发 (addr&lt;&lt;1)|0x80　<tspan font-family="monospace">写:</tspan> 发 (addr&lt;&lt;1)&amp;0xFE</text>
+<text x="40" y="138" font-size="11.5px" fill="#8a5a08">例：读 VersionReg(0x37) → 发字节 (0x37&lt;&lt;1)|0x80 = 0xEE</text>
+</svg>
+<div class="cap">图 6-1　RC522 的 SPI 地址字节：读标志在 bit7(最高位)，不是 bit0。</div>
+</div>
+<p class="note">初次移植时若把读标志错放成 <code>|0x01</code>（bit0），会让每次“读”都跑到错误寄存器，从而出现 <code>Version=0x77</code> 这类“读得到但值错”的怪象。对照 NXP 手册 Table 8 就能一步到位。</p>
+
+<h2>7 · UID 与 BCC 校验</h2>
+<p>防冲突后卡片返回 5 字节：前 4 字节是 UID，第 5 字节是 <b>BCC</b>。校验方法是让后 4 字节的校验值应当等于 BCC：</p>
+<div class="fig">
+<svg width="700" height="108" viewBox="0 0 700 108">
+<style>.ub{font:14px monospace}.ra{font:15px sans-serif;fill:#b23a2e}</style>
+<rect x="50" y="30" width="120" height="46" rx="8" fill="#e6f1fb" stroke="#185fa5"/>
+<text x="110" y="59" text-anchor="middle" class="ub">UID[0]=EA</text>
+<rect x="180" y="30" width="120" height="46" rx="8" fill="#e6f1fb" stroke="#185fa5"/>
+<text x="240" y="59" text-anchor="middle" class="ub">UID[1]=5D</text>
+<rect x="310" y="30" width="120" height="46" rx="8" fill="#e6f1fb" stroke="#185fa5"/>
+<text x="370" y="59" text-anchor="middle" class="ub">UID[2]=DD</text>
+<rect x="440" y="30" width="120" height="46" rx="8" fill="#e6f1fb" stroke="#185fa5"/>
+<text x="500" y="59" text-anchor="middle" class="ub">UID[3]=06</text>
+<text x="576" y="56" class="ra">⊕⊕⊕</text>
+<rect x="596" y="30" width="86" height="46" rx="8" fill="#ffe6a8" stroke="#c98b16"/>
+<text x="639" y="59" text-anchor="middle" class="ub">= BCC</text>
+<text x="350" y="94" text-anchor="middle" font-size="12.5px" fill="#0f6e56" font-family="monospace">EA ^ 5D ^ DD ^ 06 = 6C → 校验一致，UID 有效</text>
+</svg>
+</div>
+<p>代码里的实现：边拷贝 4 字节边累计异或 <code>check ^= buf[i]</code>，最后与返回的第 5 字节比较。不等则丢弃重试，避免把“冲撞时的脏数据”当成卡号。</p>
+
+<h2>8 · 程序分层与主循环</h2>
+<p>整个工程按“自底向上”分成清晰的 4 层。越下层越贴近寄存器，越上层越贴近“能不能刷到卡”：</p>
+<div class="card">
+<table>
+<tr><th style="width:180px">层级</th><th>文件/职责</th><th>读卡中扮演的角色</th></tr>
+<tr><td><b>④ 应用层</b></td><td><code>main.c</code> 主循环 <code>ReadCardUID()</code></td><td>决定“无卡继续扫、有卡读 UID 并打印”，并做重试</td></tr>
+<tr><td><b>③ 14443A API</b></td><td><code>rc522.c</code> 下半</td><td><code>PcdRequest</code>(寻卡) / <code>PcdAnticoll</code>(防冲突) / <code>PcdHalt</code>(休眠)，各自设对 BitFramingReg</td></tr>
+<tr><td><b>② 收发核心</b></td><td><code>rc522.c</code> 中</td><td><code>PcdComMF522</code> 搬 FIFO、等中断、收数据；<code>CalulateCRC</code></td></tr>
+<tr><td><b>① 寄存器访问</b></td><td><code>rc522.c</code> 上半 + <code>rc522.h</code>(引脚)</td><td><code>WriteRawRC / ReadRawRC / SPI_Init</code> 与 SPI1 引脚 sbit</td></tr>
+</table>
+</div>
+<p>主循环本质上是一台“状态机”：</p>
+<pre><code><span class="k">void</span> main(){
+  SPI_Init(); RC522_Init(); <span class="c">// 开SPI → 复位+ISO14443配置+开天线</span>
+  Uart1_Init();                <span class="c">// 打开调试串口</span>
+  <span class="g">print</span>("RC522 Ver=xx");      <span class="c">// 自检：0x91/0x92 表 SPI 通</span>
+  <span class="k">while</span>(1){
+     <span class="g">ReadCardUID();</span>            <span class="c">// 寻卡→(可)防冲突→校验→打印UID</span>
+     DelayMs(150);             <span class="c">// 简单消抖，防“同卡反复刷”</span>
+  }
+}</code></pre>
+
+<div class="card">
+<h3>ReadCardUID 的微观流程</h3>
+<pre><code><span class="k">if</span>( PcdRequest(REQALL, &amp;type)==<span class="g">OK</span> ){  <span class="c">// ① 找到一张卡</span>
+    DelayMs(10);
+    <span class="k">for</span>(retry=0; retry&lt;3; retry++){    <span class="c">// ② 防冲突失败重试3次</span>
+        <span class="k">if</span>( PcdAnticoll(uid)==<span class="g">OK</span> ){  <span class="c">// ③ 拿到UID(已含BCC校验)</span>
+            LED ^= 1;  <span class="g">print</span>("UID "); <span class="c">// ④ 翻转LED + 打印卡号</span>
+            <span class="k">for</span>(i=0;i&lt;4;i++) hex(uid[i]);
+            PcdHalt();  <span class="k">return</span>;       <span class="c">// ⑤ 让卡休眠，本轮结束</span>
+        }
+        DelayMs(5);
+    }
+}</code></pre>
+<p class="note"><b>为什么用 REQALL(0x52) 而不是 REQIDL(0x26)：</b>REQALL(WUPA) 能唤醒任意状态的卡(包括刚被 14443A 高层命令弄“睡/暂停”的卡)，防冲突偶发失败重试后仍能唤醒，读卡成功率高，也避免把卡“卡死”在奇怪状态。</p>
+</div>
+
+<h2>9 · 各命令：帧格式 / 返回长度对照</h2>
+<div class="card">
+<table>
+<tr><th>命令(宏)</th><th>发送内容</th><th>BitFraming</th><th>卡片回</th><th>软件判断的返回长</th></tr>
+<tr><td>寻卡 REQ (PcdRequest)</td><td>0x26/0x52 一字节</td><td><span class="ok">0x07(短帧)</span></td><td>ATQA 2B</td><td>unLen = <code>0x10</code> (16bit)</td></tr>
+<tr><td>防冲突 (PcdAnticoll)</td><td>0x93, 0x20</td><td><span class="ok">0x00(整字节)</span></td><td>UID 4B + BCC 1B</td><td>无；逐字节异或=BCC 即成功</td></tr>
+<tr><td>休眠 HALT (PcdHalt)</td><td>0x50, 0x00 +CRC</td><td><span class="ok">0x00</span></td><td>(无应答为正常)</td><td>—</td></tr>
+</table>
+<p class="cap">“返回长短”是主控判断对话是否成功的直接依据，务必把每步的期望 bit 数核对准。</p>
+</div>
+
+<h2>10 · 常见坑速查</h2>
+<div class="card">
+<table>
+<tr><th style="width:46%">现象</th><th>最可能原因 / 处理</th></tr>
+<tr><td>能读到 <code>RC522 Ver=92</code>，但刷卡永远无 UID</td><td class="bad">BitFramingReg 位长被统一设成 7 位(见第 5 节)。修复：防冲突/休眠要用 0x00。</td></tr>
+<tr><td>读寄存器返回 <code>0x77</code> 之类怪值</td><td>SPI 地址字节的读标志被设到 bit0。正确读 = <code>(addr&lt;&lt;1)|0x80</code>(bit7)。</td></tr>
+<tr><td>串口乱码 <code>Oi</code> / 无输出</td><td>波特率配置不符。该校板 9600@12MHz 用 <b>12T + T1 + TH1=0xFF/TL1=0xE6</b>。</td></tr>
+<tr><td>Ver 读到，但刷卡距离极近才偶尔成功</td><td>场强/供电：确保 RC522 3.3V 且供电电流足够；检查 GsN/CWGs/ModGs 增益；模块勿贴金属面。</td></tr>
+<tr><td>卡片是 125 kHz 的 ID 卡</td><td>RC522 只认 13.56 MHz 的 MIFARE(S50/S70)。IC 卡 ≠ ID 卡。</td></tr>
+<tr><td>Keil 报 <code>L250</code>/<code>L107</code></td><td>分别对应评估版 2KB 代码超出、DATA(128B) 溢出。换正式版或精简未用函数/缓冲。</td></tr>
+</table>
+</div>
+
+<footer>RC522 读卡号原理 · IAP15L2K61S2 / SPI1 组 · 由 <code>main.c / rc522.c / rc522.h</code> 归纳成文</footer>
+
+</div>
+</body>
+</html>
