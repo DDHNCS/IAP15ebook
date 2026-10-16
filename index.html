@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物联网单片机应用与开发 · 活页式教材（23 单元）</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E6FD8'/%3E%3Cpath d='M14 20c10-5 20-5 36 2v26c-16-7-26-7-36-2V20z' fill='none' stroke='white' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cpath d='M14 20c10-5 20-5 36 2' fill='none' stroke='%23B9D3EF' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --blue:#1E6FD8; --blue-ink:#0E2A45; --blue-bg:#EAF6FF;
+    --orange:#E29A2E; --orange-bg:#FFF8EC;
+    --green:#1F9D6B; --green-bg:#F1F8F5;
+    --ink:#22303F; --sub:#5C6F82; --line:#DCE6F0;
+    --bg:#F5F8FC; --card:#FFFFFF;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  /* ===== Hero ===== */
+  header.hero{
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(30,111,216,.14), transparent 60%),
+      linear-gradient(160deg,#0E2A45 0%,#123C66 55%,#1E6FD8 130%);
+    color:#fff; padding:56px 0 64px;
+  }
+  .hero .crumb{font-size:13px;opacity:.75;letter-spacing:1px}
+  .hero h1{font-size:34px;line-height:1.35;margin:12px 0 6px;font-weight:800}
+  .hero .sub{font-size:15px;opacity:.9;max-width:640px}
+  .hero .stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}
+  .stat{
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;padding:12px 20px;min-width:110px;
+  }
+  .stat b{display:block;font-size:24px;font-weight:800}
+  .stat span{font-size:12px;opacity:.8}
+  .hero .tags{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px}
+  .tag{
+    font-size:12px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.2);
+    padding:3px 12px;border-radius:999px;
+  }
+
+  /* ===== 导航 ===== */
+  nav.module-nav{
+    position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  nav.module-nav .wrap{display:flex;gap:6px;flex-wrap:wrap;padding:10px 22px}
+  nav.module-nav a{
+    font-size:13px;color:var(--blue-ink);text-decoration:none;
+    padding:6px 12px;border-radius:8px;white-space:nowrap;
+  }
+  nav.module-nav a:hover{background:var(--blue-bg);color:var(--blue)}
+
+  /* ===== 路径条 ===== */
+  .path{background:#fff;border-bottom:1px solid var(--line);padding:26px 0}
+  .path h2{font-size:16px;color:var(--blue-ink);margin-bottom:16px;font-weight:700}
+  .path-row{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .path-node{flex:1;min-width:150px;display:flex;align-items:center;gap:10px}
+  .path-card{
+    flex:1;background:var(--blue-bg);border:1px solid #CFE3F7;border-radius:10px;
+    padding:10px 14px;
+  }
+  .path-card b{font-size:14px;color:var(--blue-ink);display:block}
+  .path-card span{font-size:12px;color:var(--sub)}
+  .path-arrow{color:var(--blue);font-size:18px;flex:0 0 auto;padding:0 4px}
+
+  /* ===== 模块区块 ===== */
+  section.mod{padding:40px 0 6px}
+  .mod-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+  .mod-no{
+    font-size:13px;font-weight:800;color:#fff;background:var(--blue);
+    padding:3px 12px;border-radius:999px;letter-spacing:.5px;
+  }
+  .mod-head h2{font-size:22px;color:var(--blue-ink);font-weight:800}
+  .mod-head p{font-size:13px;color:var(--sub)}
+  .mod.orange .mod-no{background:var(--orange)}
+  .mod.green .mod-no{background:var(--green)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:26px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 18px 14px;display:flex;flex-direction:column;gap:10px;
+    transition:box-shadow .18s,transform .18s,border-color .18s;
+  }
+  .card:hover{box-shadow:0 10px 24px rgba(14,42,69,.08);transform:translateY(-2px);border-color:#B9D3EF}
+  .card .top{display:flex;align-items:center;gap:10px}
+  .card .uidx{
+    font-size:13px;font-weight:800;color:var(--blue);background:var(--blue-bg);
+    min-width:34px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  }
+  .card h3{font-size:15.5px;color:var(--blue-ink);font-weight:700;line-height:1.45}
+  .card p{font-size:13px;color:var(--sub);flex:1}
+  .card .links{display:flex;gap:8px}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+    font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:8px;border:1px solid;
+  }
+  .btn-html{color:var(--blue);border-color:#B9D3EF;background:var(--blue-bg)}
+  .btn-html:hover{background:var(--blue);color:#fff}
+  .btn svg{width:13px;height:13px;flex:0 0 auto}
+
+  /* ===== 页脚 ===== */
+  footer{padding:30px 0 40px;color:var(--sub);font-size:12.5px;border-top:1px solid var(--line);margin-top:20px}
+  footer b{color:var(--blue-ink)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12px}
+  .legend i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+
+  @media (max-width:680px){
+    .hero h1{font-size:26px}
+    .grid{grid-template-columns:1fr}
+    .path-node{min-width:100%;flex-direction:column;align-items:flex-start}
+    .path-arrow{transform:rotate(90deg);padding:2px 0 2px 14px}
+    nav.module-nav a,.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+    .tag,.card p{font-size:13.5px}
+    .card h3{font-size:16px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="crumb">物联网技术课程 · 活页式教材</div>
+    <h1>物联网单片机应用与开发</h1>
+    <p class="sub">基于 IAP15L2K61S2 单片机与四梯物联网考核套件，按"懂原理 → 写程序 → 验现象"任务四步法组织，覆盖基础、单片机外设、传感器、通讯驱动、综合设计与智能家居六大模块。</p>
+    <div class="stats">
+      <div class="stat"><b>23</b><span>个活页单元</span></div>
+      <div class="stat"><b>6</b><span>大学习模块</span></div>
+      <div class="stat"><b>23</b><span>个独立单文件</span></div>
+    </div>
+    <div class="tags">
+      <span class="tag">GPIO 并口</span><span class="tag">定时器 / PWM</span><span class="tag">串口 UART</span>
+      <span class="tag">中断系统</span><span class="tag">ADC 模数转换</span><span class="tag">SPI 接口</span>
+      <span class="tag">I2C 总线</span><span class="tag">单总线</span><span class="tag">RS-485</span>
+      <span class="tag">Modbus RTU</span><span class="tag">LoRa / SX1278</span><span class="tag">RFID / NFC · RC522</span>
+    </div>
+  </div>
+</header>
+
+<nav class="module-nav">
+  <div class="wrap">
+    <a href="#m1">① 基础模块</a>
+    <a href="#m2">② 单片机应用</a>
+    <a href="#m3">③ 传感器应用</a>
+    <a href="#m4">④ 通讯驱动</a>
+    <a href="#m5">⑤ 综合设计</a>
+    <a href="#m6">⑥ 智能家居</a>
+  </div>
+</nav>
+
+<div class="path">
+  <div class="wrap">
+    <h2>学习路径：模块一 → 模块六，层层递进</h2>
+    <div class="path-row" id="pathRow"></div>
+  </div>
+</div>
+
+<main class="wrap" id="modules"></main>
+
+<footer>
+  <div class="wrap">
+    <p>本页为《物联网单片机应用与开发》活页式教材首页，23 个单元均为<b>单个自包含 HTML 文件</b>（图片已内嵌），点击卡片即可打开，无需任何外部资源。</p>
+    <div class="legend">
+      <i><span style="color:var(--blue)">●</span> 单文件活页教材（浏览器直接打开）</i>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===== 教材数据：文件名为真实文件名，请勿改动 ===== */
+const MODULES = [
+  { id:"m1", no:"模块一", title:"基础模块", desc:"认识物联网、IAP15 单片机与 Keil + STC-ISP 开发环境", cls:"blue",
+    units:[
+      { u:"01", name:"认识物联网 · IAP15 与开发环境（课程概述）",
+        brief:"认识物联网、IAP15 单片机简介、开发环境搭建（Keil C51 + STC-ISP）、标准开发流程六步。",
+        html:"认识物联网-IAP15与开发环境-课程概述.html", pdf:"pdf/认识物联网-IAP15与开发环境-课程概述.pdf" }
+    ]},
+  { id:"m2", no:"模块二", title:"单片机应用模块", desc:"并口、定时器、串口、中断、ADC、SPI、I2C 七大外设编程", cls:"blue",
+    units:[
+      { u:"02", name:"并行口编程 · LED 流水灯与按键检测",
+        brief:"并口输出（LED 闪烁/流水灯）、按键输入与消抖、独立按键检测。",
+        html:"并行口编程-LED流水灯与按键检测.html", pdf:"pdf/并行口编程-LED流水灯与按键检测.pdf" },
+      { u:"03", name:"定时器与计数器 · 定时流水灯与数码管动态显示",
+        brief:"定时器初值计算、定时中断、数码管动态显示、PWM 呼吸灯。",
+        html:"定时器与计数器-定时流水灯与数码管动态显示.html", pdf:"pdf/定时器与计数器-定时流水灯与数码管动态显示.pdf" },
+      { u:"04", name:"串行口通信 · 双机收发与串口助手调试",
+        brief:"UART 原理、波特率配置、自环回、双机收发、串口助手调试。",
+        html:"串行口通信-双机收发与串口助手调试.html", pdf:"pdf/串行口通信-双机收发与串口助手调试.pdf" },
+      { u:"05", name:"中断系统 · 外部中断控制与串口中断",
+        brief:"中断系统结构与优先级、外部中断控制流水灯、串口中断收发。",
+        html:"中断系统-外部中断控制与串口中断.html", pdf:"pdf/中断系统-外部中断控制与串口中断.pdf" },
+      { u:"06", name:"模数转换 ADC · 测量外部电压并显示",
+        brief:"ADC 原理、通道/时钟配置、10 位采样换算、数字电压表、多通道轮换。",
+        html:"模数转换ADC-测量外部电压并显示.html", pdf:"pdf/模数转换ADC-测量外部电压并显示.pdf" },
+      { u:"07", name:"SPI 接口 · 与 SX1278 / DS1302 等片外器件通信",
+        brief:"SPI 四线时序、软件 SPI、SX1278 读写、DS1302 类器件移植。",
+        html:"SPI接口-与SX1278和DS1302等片外器件通信.html", pdf:"pdf/SPI接口-与SX1278和DS1302等片外器件通信.pdf" },
+      { u:"08", name:"I2C 总线 · 读写 EEPROM 24C02",
+        brief:"软件 I2C 时序（起始/停止/应答）、24C02 读写、断电保存配置。",
+        html:"I2C总线-读写EEPROM 24C02.html", pdf:"pdf/I2C总线-读写EEPROM 24C02.pdf" }
+    ]},
+  { id:"m3", no:"模块三", title:"传感器应用模块", desc:"光照、温度、温湿度、超声波四类传感器接入与驱动", cls:"blue",
+    units:[
+      { u:"09", name:"光照传感器 · 利用 ADC 测光强",
+        brief:"光电效应与光敏电阻、模拟信号链、ADC 采集、光照分档应用。",
+        html:"光照传感器-利用ADC测光强.html", pdf:"pdf/光照传感器-利用ADC测光强.pdf" },
+      { u:"10", name:"单总线数字温度传感器 DS18B20",
+        brief:"温度传感器分类、单总线时序、ROM/功能指令、驱动移植与读取。",
+        html:"单总线数字温度传感器DS18B20.html", pdf:"pdf/单总线数字温度传感器DS18B20.pdf" },
+      { u:"11", name:"温湿度传感器 DHT11 · 单总线读 40 位数据",
+        brief:"湿敏元件与 40 位数据格式、时序解析、数据校验与显示。",
+        html:"温湿度传感器DHT11-单总线读40位数据.html", pdf:"pdf/温湿度传感器DHT11-单总线读40位数据.pdf" },
+      { u:"12", name:"超声波测距 HC-SR04 · 飞行时间 TOF",
+        brief:"超声波与 TOF 测距原理、触发与计时、距离换算与显示。",
+        html:"超声波测距HC-SR04-飞行时间TOF.html", pdf:"pdf/超声波测距HC-SR04-飞行时间TOF.pdf" }
+    ]},
+  { id:"m4", no:"模块四", title:"通讯驱动编程模块", desc:"RS-485、Modbus、LoRa 三种工业/远距通讯", cls:"blue",
+    units:[
+      { u:"13", name:"RS-485 总线通信 · 差分收发与半双工",
+        brief:"差分抗干扰原理、SIT3485 收发、方向控制与半双工组网。",
+        html:"RS485总线通信-差分收发与半双工.html", pdf:"pdf/RS485总线通信-差分收发与半双工.pdf" },
+      { u:"14", name:"Modbus 通信协议 · 数据链路与 RTU 帧",
+        brief:"Modbus 分层、RTU 四域结构、功能码、组帧与 CRC 校验。",
+        html:"Modbus通信协议-数据链路与RTU帧.html", pdf:"pdf/Modbus通信协议-数据链路与RTU帧.pdf" },
+      { u:"15", name:"LoRa 远距离无线通信 · SX1278",
+        brief:"LoRa 原理、SX1278 结构与寄存器、SPI 驱动、收发配置。",
+        html:"LoRa远距离无线通信-SX1278.html", pdf:"pdf/LoRa远距离无线通信-SX1278.pdf" }
+    ]},
+  { id:"m5", no:"模块五", title:"综合设计模块", desc:"RS-485 / LoRa 温度传输与异构桥接综合项目", cls:"green",
+    units:[
+      { u:"16", name:"综合项目 · 温度数据的 RS-485 有线传输",
+        brief:"系统架构、多文件工程组织、DS18B20 + RS-485 温度帧传输。",
+        html:"综合项目-温度数据的RS485有线传输.html", pdf:"pdf/综合项目-温度数据的RS485有线传输.pdf" },
+      { u:"17", name:"综合项目 · 温度数据的 LoRa 无线传输",
+        brief:"空口数据链、模块复用与射频开关、DS18B20 + SX1278 温度帧组装。",
+        html:"综合项目-温度数据的LoRa无线传输.html", pdf:"pdf/综合项目-温度数据的LoRa无线传输.pdf" },
+      { u:"18", name:"综合项目（拓展）· LoRa 无线与 RS-485 有线桥接",
+        brief:"异构网络桥接原理、双驱动移植、宏切换与双向数据转换。",
+        html:"综合项目-拓展-LoRa无线与RS485有线的桥接转换.html", pdf:"pdf/综合项目-拓展-LoRa无线与RS485有线的桥接转换.pdf" }
+    ]},
+  { id:"m6", no:"模块六", title:"物联网智能家居模块", desc:"RC522 RFID 门禁：原理、读卡、按键管理、Web 上位机（5 个单元）", cls:"orange",
+    units:[
+      { u:"19", name:"RFID 射频识别原理分析",
+        brief:"RFID 三要素、分类、无源标签电磁感应取电、ISO14443A 前后向链路与一次识别流程。",
+        html:"RFID原理分析.html" },
+      { u:"20", name:"RC522 读卡号原理分析",
+        brief:"读卡流程、数据通路全景、ISO/IEC 14443 寻卡对话、BitFramingReg 与 SPI 读写寄存器。",
+        html:"读卡号原理分析.html" },
+      { u:"21", name:"物联网智能家居模块 · RC522 RFID 门禁（4 课时）",
+        brief:"RFID/NFC 原理、SPI 通信、硬件接线、读卡程序串口测试、按键管理门禁。",
+        html:"物联网智能家居模块-RC522门禁.html" },
+      { u:"22", name:"物联网智能家居模块 · RC522 门禁与上位机管理",
+        brief:"门禁 + 串口/Web 上位机，卡表管理（添加/删除卡）、LED 与数码管门锁状态显示。",
+        html:"物联网智能家居模块-RC522门禁与上位机.html" },
+      { u:"23", name:"RC522 门禁上位机 · 串口调试与 Web Serial",
+        brief:"HTML 串口上位机设计、Web Serial 连接、指令协议与调试方法。",
+        html:"RC522门禁上位机-串口调试与WebSerial.html" }
+    ]}
+];
+
+/* ===== 渲染：路径条 ===== */
+const PATH_STEPS = ["基础模块","单片机应用","传感器应用","通讯驱动","综合设计","智能家居"];
+const pathRow = document.getElementById("pathRow");
+PATH_STEPS.forEach(function(s, i){
+  const node = document.createElement("div");
+  node.className = "path-node";
+  node.innerHTML = '<div class="path-card"><b>' + s + '</b><span>模块' + ["一","二","三","四","五","六"][i] + '</span></div>';
+  pathRow.appendChild(node);
+  if (i < PATH_STEPS.length - 1){
+    const ar = document.createElement("div");
+    ar.className = "path-arrow";
+    ar.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h13m0 0l-5-5m5 5l-5 5" stroke="#1E6FD8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    pathRow.appendChild(ar);
+  }
+});
+
+/* ===== 渲染：模块与卡片 ===== */
+const main = document.getElementById("modules");
+MODULES.forEach(function(mod){
+  const sec = document.createElement("section");
+  sec.className = "mod" + (mod.cls === "orange" ? " orange" : mod.cls === "green" ? " green" : "");
+  sec.id = mod.id;
+  let html = '<div class="mod-head"><span class="mod-no">' + mod.no + '</span><h2>' + mod.title + '</h2><p>' + mod.desc + '</p></div>';
+  html += '<div class="grid">';
+  mod.units.forEach(function(u){
+    html += '<div class="card">'
+      + '<div class="top"><span class="uidx">' + u.u + '</span><h3>' + u.name + '</h3></div>'
+      + '<p>' + u.brief + '</p>'
+      + '<div class="links">'
+      + '<a class="btn btn-html" href="' + u.html + '">' + svgHtml() + ' 打开活页</a>'
+      + '</div></div>';
+  });
+  html += '</div>';
+  sec.innerHTML = html;
+  main.appendChild(sec);
+});
+
+function svgHtml(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>';
+}
+</script>
+</body>
+</html>
