@@ -46,11 +46,68 @@
   .step .bd{flex:1;} .step .bd h4{margin:0 0 4px;}
   .footer{text-align:center; color:var(--sub); font-size:12.5px; padding:20px 0; border-top:1px dashed var(--line); margin-top:20px;}
 </style>
-</head>
-<body>
+<style id="knav-css">
+:root{--k-ink:#1A2E4B;--k-accent:#E8720C;--k-paper:#fff;--k-paper2:#F7F9FC;--k-line:#D6DEE9;--k-text2:#5A6B82;}
+.k-topbar{position:fixed;top:0;left:0;right:0;z-index:1200;background:rgba(26,46,75,.97);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;height:56px;box-shadow:0 2px 10px rgba(26,46,75,.25);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-topbar .k-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:.3px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.k-topbar .k-brand .k-sub{color:#AFC3DE;font-weight:400;font-size:12px;}
+.k-topbar .k-spacer{flex:1;}
+.k-topbar .k-tool{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;padding:7px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:none;min-height:36px;white-space:nowrap;}
+.k-topbar .k-tool:hover{background:rgba(255,255,255,.22);color:#fff;}
+.k-burger{display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;min-width:40px;min-height:40px;}
+.k-toc{position:fixed;top:56px;bottom:0;left:0;width:250px;background:var(--k-paper);border-right:1px solid var(--k-line);overflow-y:auto;padding:18px 0 30px;z-index:1100;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-toc .k-toc-title{font-size:12px;color:var(--k-text2);letter-spacing:2px;font-weight:700;padding:0 20px 10px;text-transform:uppercase;}
+.k-toc a{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:13px;color:var(--k-text2);border-left:3px solid transparent;text-decoration:none;transition:all .15s;line-height:1.45;}
+.k-toc a .k-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+.k-toc a:hover{color:var(--k-ink);background:var(--k-paper2);}
+.k-toc a.k-active{color:var(--k-ink);font-weight:700;border-left-color:var(--k-accent);background:var(--k-paper2);}
+.k-toc a.k-active .k-dot{background:var(--k-accent);}
+.k-toc .k-g1{margin-top:12px;font-size:12px;color:var(--k-text2);padding:7px 20px 3px;font-weight:700;}
+.k-toc .k-back{margin-bottom:4px;}
+.k-mask{display:none;position:fixed;inset:0;background:rgba(15,25,40,.45);z-index:1050;}
+.k-mask.k-open{display:block;}
+html.k-on{scroll-padding-top:70px;}
+@media (min-width:961px){
+  body.k-on .wrap{margin-left:282px;max-width:1080px;}
+}
+@media (max-width:960px){
+  .k-toc{left:-262px;transition:left .25s;}
+  .k-toc.k-open{left:0;box-shadow:4px 0 18px rgba(0,0,0,.18);}
+  .k-burger{display:block;}
+}
+@media print{
+  .k-topbar,.k-toc,.k-mask{display:none!important;}
+  body.k-on .wrap{margin-left:0!important;max-width:1000px!important;}
+}
+</style></head>
+<body class="k-on">
+<header class="k-topbar">
+  <button class="k-burger" id="kBurger" aria-label="打开目录"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="k-brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFC38A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span><span class="k-sub">· 活页式教材</span></span></div>
+  <div class="k-spacer"></div>
+  <a class="k-tool" href="index.html">← 返回目录</a>
+  <button class="k-tool" onclick="window.print()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> 打印本页</button>
+</header>
+<div class="k-mask" id="kMask"></div>
+<nav class="k-toc" id="kToc">
+  <div class="k-toc-title">活页索引</div>
+  <a href="#k-cover"><span class="k-dot" style="background:#1A2E4B"></span>封面与教材信息</a>
+  <a href="#k-sec-0-1"><span class="k-dot" style="background:#2B6CB0"></span>1.1 准备工作</a>
+  <a href="#k-sec-0-2"><span class="k-dot" style="background:#2B6CB0"></span>1.2 逐条命令测试</a>
+  <a href="#k-sec-0-3"><span class="k-dot" style="background:#2B6CB0"></span>1.3 刷卡事件（MCU 主动上报）</a>
+  <a href="#k-sec-0-4"><span class="k-dot" style="background:#2B6CB0"></span>2.1 为什么用浏览器，不用 C# / Python</a>
+  <a href="#k-sec-0-5"><span class="k-dot" style="background:#2B6CB0"></span>2.2 整体结构</a>
+  <a href="#k-sec-0-6"><span class="k-dot" style="background:#2B6CB0"></span>2.3 连接串口（核心 5 行）</a>
+  <a href="#k-sec-0-7"><span class="k-dot" style="background:#2B6CB0"></span>2.4 按行解析（最关键的一段）</a>
+  <a href="#k-sec-0-8"><span class="k-dot" style="background:#2B6CB0"></span>2.5 handleLine 协议分发</a>
+  <a href="#k-sec-0-9"><span class="k-dot" style="background:#2B6CB0"></span>2.6 按钮怎么发命令</a>
+  <a href="#k-sec-0-10"><span class="k-dot" style="background:#2B6CB0"></span>2.7 localStorage 本地记录</a>
+  <a href="#k-sec-0-11"><span class="k-dot" style="background:#2B6CB0"></span>2.8 操作流程</a>
+</nav>
+
 <div class="wrap">
 
-<div class="hero">
+<div class="hero" id="k-cover">
   <h1>RC522 门禁上位机</h1>
   <p>分两步调试：先用串口助手手敲命令验证协议，再用浏览器 Web Serial 打开 HTML 上位机。代码与下位机串口协议逐段解析。</p>
 </div>
@@ -61,12 +118,12 @@
   <div class="chap-title">串口助手调试协议</div>
   <div class="chap-lead">不写网页，先用 SSCOM / STC-ISP 自带串口助手把命令敲一遍，确认下位机协议通了。</div>
 
-  <h3>1.1 准备工作</h3>
+  <h3 id="k-sec-0-1">1.1 准备工作</h3>
   <div class="step"><div class="no">1</div><div class="bd"><h4>烧录程序</h4><p>用 STC-ISP 把 <span class="c">RC522_key</span> 工程的 hex 烧进单片机，<b>烧完关闭 STC-ISP</b>（串口被它占着，其他助手打不开）。</p></div></div>
   <div class="step"><div class="no">2</div><div class="bd"><h4>打开串口助手</h4><p>推荐 SSCOM 或串口调试助手，选对应 COM 口，<b>波特率 9600，8 数据位，无校验，1 停止位</b>，勾选"发送新行"（每条命令末尾自动加回车换行）。</p></div></div>
   <div class="step"><div class="no">3</div><div class="bd"><h4>按复位键</h4><p>MCU 复位后会主动输出 <span class="c">READY</span> 和 <span class="c">VER=92</span>，看到这两行说明串口通了。</p></div></div>
 
-  <h3>1.2 逐条命令测试</h3>
+  <h3 id="k-sec-0-2">1.2 逐条命令测试</h3>
   <table>
     <tr><th>在发送框输入</th><th>预期返回</th><th>说明</th></tr>
     <tr><td class="c">VER</td><td class="c">VER=92</td><td>查询 RC522 版本</td></tr>
@@ -79,7 +136,7 @@
     <tr><td class="c">XYZ</td><td class="c">ERR=BADCMD</td><td>非法命令</td></tr>
   </table>
 
-  <h3>1.3 刷卡事件（MCU 主动上报）</h3>
+  <h3 id="k-sec-0-3">1.3 刷卡事件（MCU 主动上报）</h3>
   <p>不用发命令，把卡往 RC522 上贴，串口会自动输出：</p>
   <pre class="code"><span class="cm">// 授权卡</span>
 EVT=OK,UID=<span class="nu">EA5DDD06</span>,IDX=<span class="nu">0</span>
@@ -102,12 +159,12 @@ EVT=DENY,UID=<span class="nu">2406BB06</span></pre>
   <div class="chap-title">HTML 上位机逐段解析</div>
   <div class="chap-lead">用 Chrome / Edge 打开上位机网页，点"连接串口"，浏览器通过 Web Serial API 直接和单片机通信。</div>
 
-  <h3>2.1 为什么用浏览器，不用 C# / Python</h3>
+  <h3 id="k-sec-0-4">2.1 为什么用浏览器，不用 C# / Python</h3>
   <div class="note">
     <b>Web Serial API</b>：Chrome / Edge 从 2022 年起支持浏览器直接读写串口。打开 HTML → 点连接 → 选 COM 口 → 就能收发数据。不用装任何软件，一个 html 文件双击就能跑，学生拷贝到自己电脑也能用。
   </div>
 
-  <h3>2.2 整体结构</h3>
+  <h3 id="k-sec-0-5">2.2 整体结构</h3>
   <pre class="code"><span class="cm">// 页面三大块：</span>
 header   <span class="cm">// 连接按钮 + 状态灯 + 版本号</span>
 .grid
@@ -115,7 +172,7 @@ header   <span class="cm">// 连接按钮 + 状态灯 + 版本号</span>
   └─ .panel  <span class="cm">// 卡号管理表格 + 添加/删除按钮</span>
 .panel   <span class="cm">// 事件日志（串口收发都打在这里）</span></pre>
 
-  <h3>2.3 连接串口（核心 5 行）</h3>
+  <h3 id="k-sec-0-6">2.3 连接串口（核心 5 行）</h3>
   <pre class="code"><span class="kw">async function</span> <span class="fn">connect</span>(){
   port = <span class="kw">await</span> navigator.serial.<span class="fn">requestPort</span>();   <span class="cm">// 弹窗选 COM 口</span>
   <span class="kw">await</span> port.<span class="fn">open</span>({baudRate:<span class="nu">9600</span>});             <span class="cm">// 打开串口</span>
@@ -126,7 +183,7 @@ header   <span class="cm">// 连接按钮 + 状态灯 + 版本号</span>
 }</pre>
   <p>发送命令更简单：<span class="c">writer.write("ADD,EA5DDD06\n")</span>。</p>
 
-  <h3>2.4 按行解析（最关键的一段）</h3>
+  <h3 id="k-sec-0-7">2.4 按行解析（最关键的一段）</h3>
   <p>串口是字节流，没有"行"的概念。网页要自己按 <span class="c">\n</span> 切行：</p>
   <pre class="code">lineBuf += 收到的文本;
 <span class="kw">while</span>((i = lineBuf.<span class="fn">indexOf</span>(<span class="st">'\n'</span>)) >= <span class="nu">0</span>){
@@ -135,7 +192,7 @@ header   <span class="cm">// 连接按钮 + 状态灯 + 版本号</span>
   <span class="fn">handleLine</span>(line);       <span class="cm">// 解析这一行</span>
 }</pre>
 
-  <h3>2.5 handleLine 协议分发</h3>
+  <h3 id="k-sec-0-8">2.5 handleLine 协议分发</h3>
   <pre class="code"><span class="kw">function</span> <span class="fn">handleLine</span>(line){
   <span class="kw">if</span>(line.<span class="fn">startsWith</span>(<span class="st">'LED='</span>)){
     <span class="cm">// "LED=1000" → 门锁1开，其余关</span>
@@ -151,7 +208,7 @@ header   <span class="cm">// 连接按钮 + 状态灯 + 版本号</span>
   }
 }</pre>
 
-  <h3>2.6 按钮怎么发命令</h3>
+  <h3 id="k-sec-0-9">2.6 按钮怎么发命令</h3>
   <pre class="code"><span class="cm">// "添加卡"按钮</span>
 btnAdd.<span class="fn">onclick</span> = () => {
   <span class="kw">const</span> uid = input.value.<span class="fn">trim</span>().<span class="fn">toUpperCase</span>();
@@ -159,7 +216,7 @@ btnAdd.<span class="fn">onclick</span> = () => {
   writer.<span class="fn">write</span>(<span class="st">'ADD,'</span> + uid + <span class="st">'\n'</span>);
 };</pre>
 
-  <h3>2.7 localStorage 本地记录</h3>
+  <h3 id="k-sec-0-10">2.7 localStorage 本地记录</h3>
   <p>网页刷新后门锁状态和卡表不丢，因为每次更新都写进浏览器 localStorage：</p>
   <pre class="code">localStorage.<span class="fn">setItem</span>(<span class="st">'icdoor_host_v1'</span>,
   JSON.<span class="fn">stringify</span>({lockState, cards, version}));</pre>
@@ -168,7 +225,7 @@ btnAdd.<span class="fn">onclick</span> = () => {
     <b>常见坑：</b>file:// 直接双击打开 html，Chrome 会因为安全策略拦截 Web Serial。解决：在 html 所在目录运行 <span class="c">python -m http.server 8000</span>，然后浏览器访问 <span class="c">http://localhost:8000/RC522门禁上位机.html</span>。或者直接用 Edge 打开，Edge 对 file:// 限制较松。
   </div>
 
-  <h3>2.8 操作流程</h3>
+  <h3 id="k-sec-0-11">2.8 操作流程</h3>
   <div class="step"><div class="no">1</div><div class="bd"><h4>连接串口</h4><p>点"连接串口"→ 选 COM 口 → 看到绿灯"已连接"，MCU 版本显示 92。</p></div></div>
   <div class="step"><div class="no">2</div><div class="bd"><h4>看门锁状态</h4><p>刷授权卡，网页上对应锁图标变绿，5 秒后自动变灰。</p></div></div>
   <div class="step"><div class="no">3</div><div class="bd"><h4>加卡 / 删卡</h4><p>输入 8 位 UID → 添加；或在卡表点"删除"。日志区会显示 ACK=ADD,OK 等反馈。</p></div></div>
@@ -177,5 +234,22 @@ btnAdd.<span class="fn">onclick</span> = () => {
 </div>
 
 </div>
-</body>
+<script>
+(function(){
+  var burger=document.getElementById('kBurger'),toc=document.getElementById('kToc'),mask=document.getElementById('kMask');
+  function closeNav(){if(toc)toc.classList.remove('k-open');if(mask)mask.classList.remove('k-open');}
+  if(burger)burger.addEventListener('click',function(){if(toc&&toc.classList.contains('k-open')){closeNav();}else{if(toc)toc.classList.add('k-open');if(mask)mask.classList.add('k-open');}});
+  if(mask)mask.addEventListener('click',closeNav);
+  var links=document.querySelectorAll('.k-toc a[href^="#"]');
+  function onScroll(){
+    links.forEach(function(a){
+      var id=a.getAttribute('href').slice(1),el=document.getElementById(id);
+      if(el&&el.getBoundingClientRect().top<130)a.classList.add('k-active');
+      else a.classList.remove('k-active');
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+</script></body>
 </html>

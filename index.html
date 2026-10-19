@@ -120,10 +120,65 @@
     .card h3{font-size:16px}
   }
 </style>
-</head>
-<body>
+<style id="knav-css">
+:root{--k-ink:#1A2E4B;--k-accent:#E8720C;--k-paper:#fff;--k-paper2:#F7F9FC;--k-line:#D6DEE9;--k-text2:#5A6B82;}
+.k-topbar{position:fixed;top:0;left:0;right:0;z-index:1200;background:rgba(26,46,75,.97);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;height:56px;box-shadow:0 2px 10px rgba(26,46,75,.25);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-topbar .k-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:.3px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.k-topbar .k-brand .k-sub{color:#AFC3DE;font-weight:400;font-size:12px;}
+.k-topbar .k-spacer{flex:1;}
+.k-topbar .k-tool{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;padding:7px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:none;min-height:36px;white-space:nowrap;}
+.k-topbar .k-tool:hover{background:rgba(255,255,255,.22);color:#fff;}
+.k-burger{display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;min-width:40px;min-height:40px;}
+.k-toc{position:fixed;top:56px;bottom:0;left:0;width:250px;background:var(--k-paper);border-right:1px solid var(--k-line);overflow-y:auto;padding:18px 0 30px;z-index:1100;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-toc .k-toc-title{font-size:12px;color:var(--k-text2);letter-spacing:2px;font-weight:700;padding:0 20px 10px;text-transform:uppercase;}
+.k-toc a{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:13px;color:var(--k-text2);border-left:3px solid transparent;text-decoration:none;transition:all .15s;line-height:1.45;}
+.k-toc a .k-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+.k-toc a:hover{color:var(--k-ink);background:var(--k-paper2);}
+.k-toc a.k-active{color:var(--k-ink);font-weight:700;border-left-color:var(--k-accent);background:var(--k-paper2);}
+.k-toc a.k-active .k-dot{background:var(--k-accent);}
+.k-toc .k-g1{margin-top:12px;font-size:12px;color:var(--k-text2);padding:7px 20px 3px;font-weight:700;}
+.k-toc .k-back{margin-bottom:4px;}
+.k-mask{display:none;position:fixed;inset:0;background:rgba(15,25,40,.45);z-index:1050;}
+.k-mask.k-open{display:block;}
+html.k-on{scroll-padding-top:70px;}
+@media (min-width:961px){
+  body.k-on .wrap{margin-left:282px;max-width:1080px;}
+}
+@media (max-width:960px){
+  .k-toc{left:-262px;transition:left .25s;}
+  .k-toc.k-open{left:0;box-shadow:4px 0 18px rgba(0,0,0,.18);}
+  .k-burger{display:block;}
+}
+@media print{
+  .k-topbar,.k-toc,.k-mask{display:none!important;}
+  body.k-on .wrap{margin-left:0!important;max-width:1000px!important;}
+}
+</style></head>
+<body class="k-on">
+<header class="k-topbar">
+  <button class="k-burger" id="kBurger" aria-label="打开目录"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="k-brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFC38A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span><span class="k-sub">· 课程总目录</span></span></div>
+  <div class="k-spacer"></div>
+  
+  <button class="k-tool" onclick="window.print()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> 打印本页</button>
+</header>
+<div class="k-mask" id="kMask"></div>
+<nav class="k-toc" id="kToc">
+  <div class="k-toc-title">活页索引</div>
+  <a href="#k-cover"><span class="k-dot" style="background:#1A2E4B"></span>封面与教材信息</a>
+  <a href="#k-path"><span class="k-dot" style="background:#2B6CB0"></span>学习路径（六大模块）</a>
+  <a href="#modules"><span class="k-dot" style="background:#E8720C"></span>模块导航</a>
+  <div class="k-g1">六大模块直达</div>
+  <a href="#m1"><span class="k-dot" style="background:#2E7D5B"></span>基础模块</a>
+  <a href="#m2"><span class="k-dot" style="background:#2E7D5B"></span>单片机应用</a>
+  <a href="#m3"><span class="k-dot" style="background:#2E7D5B"></span>传感器应用</a>
+  <a href="#m4"><span class="k-dot" style="background:#2E7D5B"></span>通讯驱动</a>
+  <a href="#m5"><span class="k-dot" style="background:#2E7D5B"></span>综合设计</a>
+  <a href="#m6"><span class="k-dot" style="background:#2E7D5B"></span>智能家居</a>
+</nav>
 
-<header class="hero">
+
+<header class="hero" id="k-cover">
   <div class="wrap">
     <div class="crumb">物联网技术课程 · 活页式教材</div>
     <h1>物联网单片机应用与开发</h1>
@@ -153,9 +208,9 @@
   </div>
 </nav>
 
-<div class="path">
+<div class="path" id="k-path">
   <div class="wrap">
-    <h2>学习路径：模块一 → 模块六，层层递进</h2>
+    <h2 id="k-sec-1">学习路径：模块一 → 模块六，层层递进</h2>
     <div class="path-row" id="pathRow"></div>
   </div>
 </div>
@@ -285,11 +340,11 @@ MODULES.forEach(function(mod){
   const sec = document.createElement("section");
   sec.className = "mod" + (mod.cls === "orange" ? " orange" : mod.cls === "green" ? " green" : "");
   sec.id = mod.id;
-  let html = '<div class="mod-head"><span class="mod-no">' + mod.no + '</span><h2>' + mod.title + '</h2><p>' + mod.desc + '</p></div>';
+  let html = '<div class="mod-head"><span class="mod-no">' + mod.no + '</span><h2 id="k-sec-2">' + mod.title + '</h2><p>' + mod.desc + '</p></div>';
   html += '<div class="grid">';
   mod.units.forEach(function(u){
     html += '<div class="card">'
-      + '<div class="top"><span class="uidx">' + u.u + '</span><h3>' + u.name + '</h3></div>'
+      + '<div class="top"><span class="uidx">' + u.u + '</span><h3 id="k-sec-2-1">' + u.name + '</h3></div>'
       + '<p>' + u.brief + '</p>'
       + '<div class="links">'
       + '<a class="btn btn-html" href="' + u.html + '">' + svgHtml() + ' 打开活页</a>'
@@ -304,5 +359,22 @@ function svgHtml(){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>';
 }
 </script>
-</body>
+<script>
+(function(){
+  var burger=document.getElementById('kBurger'),toc=document.getElementById('kToc'),mask=document.getElementById('kMask');
+  function closeNav(){if(toc)toc.classList.remove('k-open');if(mask)mask.classList.remove('k-open');}
+  if(burger)burger.addEventListener('click',function(){if(toc&&toc.classList.contains('k-open')){closeNav();}else{if(toc)toc.classList.add('k-open');if(mask)mask.classList.add('k-open');}});
+  if(mask)mask.addEventListener('click',closeNav);
+  var links=document.querySelectorAll('.k-toc a[href^="#"]');
+  function onScroll(){
+    links.forEach(function(a){
+      var id=a.getAttribute('href').slice(1),el=document.getElementById(id);
+      if(el&&el.getBoundingClientRect().top<130)a.classList.add('k-active');
+      else a.classList.remove('k-active');
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+</script></body>
 </html>

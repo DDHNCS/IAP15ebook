@@ -49,11 +49,80 @@
   .empty{color:#ba6a6a}
   footer{text-align:center;font-size:12px;color:#96a3b2;margin-top:48px}
 </style>
-</head>
-<body>
+<style id="knav-css">
+:root{--k-ink:#1A2E4B;--k-accent:#E8720C;--k-paper:#fff;--k-paper2:#F7F9FC;--k-line:#D6DEE9;--k-text2:#5A6B82;}
+.k-topbar{position:fixed;top:0;left:0;right:0;z-index:1200;background:rgba(26,46,75,.97);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;height:56px;box-shadow:0 2px 10px rgba(26,46,75,.25);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-topbar .k-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:.3px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.k-topbar .k-brand .k-sub{color:#AFC3DE;font-weight:400;font-size:12px;}
+.k-topbar .k-spacer{flex:1;}
+.k-topbar .k-tool{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;padding:7px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:none;min-height:36px;white-space:nowrap;}
+.k-topbar .k-tool:hover{background:rgba(255,255,255,.22);color:#fff;}
+.k-burger{display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;min-width:40px;min-height:40px;}
+.k-toc{position:fixed;top:56px;bottom:0;left:0;width:250px;background:var(--k-paper);border-right:1px solid var(--k-line);overflow-y:auto;padding:18px 0 30px;z-index:1100;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-toc .k-toc-title{font-size:12px;color:var(--k-text2);letter-spacing:2px;font-weight:700;padding:0 20px 10px;text-transform:uppercase;}
+.k-toc a{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:13px;color:var(--k-text2);border-left:3px solid transparent;text-decoration:none;transition:all .15s;line-height:1.45;}
+.k-toc a .k-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+.k-toc a:hover{color:var(--k-ink);background:var(--k-paper2);}
+.k-toc a.k-active{color:var(--k-ink);font-weight:700;border-left-color:var(--k-accent);background:var(--k-paper2);}
+.k-toc a.k-active .k-dot{background:var(--k-accent);}
+.k-toc .k-g1{margin-top:12px;font-size:12px;color:var(--k-text2);padding:7px 20px 3px;font-weight:700;}
+.k-toc .k-back{margin-bottom:4px;}
+.k-mask{display:none;position:fixed;inset:0;background:rgba(15,25,40,.45);z-index:1050;}
+.k-mask.k-open{display:block;}
+html.k-on{scroll-padding-top:70px;}
+@media (min-width:961px){
+  body.k-on .wrap{margin-left:282px;max-width:1080px;}
+}
+@media (max-width:960px){
+  .k-toc{left:-262px;transition:left .25s;}
+  .k-toc.k-open{left:0;box-shadow:4px 0 18px rgba(0,0,0,.18);}
+  .k-burger{display:block;}
+}
+@media print{
+  .k-topbar,.k-toc,.k-mask{display:none!important;}
+  body.k-on .wrap{margin-left:0!important;max-width:1000px!important;}
+}
+</style></head>
+<body class="k-on">
+<header class="k-topbar">
+  <button class="k-burger" id="kBurger" aria-label="打开目录"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="k-brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFC38A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span><span class="k-sub">· 活页式教材</span></span></div>
+  <div class="k-spacer"></div>
+  <a class="k-tool" href="index.html">← 返回目录</a>
+  <button class="k-tool" onclick="window.print()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> 打印本页</button>
+</header>
+<div class="k-mask" id="kMask"></div>
+<nav class="k-toc" id="kToc">
+  <div class="k-toc-title">活页索引</div>
+  <a href="#k-cover"><span class="k-dot" style="background:#1A2E4B"></span>封面与教材信息</a>
+  <div class="k-g1">1 · RFID 是什么：定义与三要素</div>
+  <div class="k-g1">2 · RFID 怎么分类</div>
+  <a href="#k-sec-2-1"><span class="k-dot" style="background:#2B6CB0"></span>按工作频率（决定读距与形态）</a>
+  <a href="#k-sec-2-2"><span class="k-dot" style="background:#2B6CB0"></span>按供电方式（决定卡能否“自己说话”）</a>
+  <div class="k-g1">3 · 无源标签从哪取电：电磁感应</div>
+  <a href="#k-sec-3-1"><span class="k-dot" style="background:#2B6CB0"></span>为什么是 LC 谐振</a>
+  <a href="#k-sec-3-2"><span class="k-dot" style="background:#2B6CB0"></span>同一个场：既供电又传数据</a>
+  <div class="k-g1">4 · 前向链路：读卡器 → 标签（发命令）</div>
+  <div class="k-g1">5 · 反向链路：标签 → 读卡器（回数据）</div>
+  <a href="#k-sec-5-1"><span class="k-dot" style="background:#2B6CB0"></span>标签端做了什么</a>
+  <a href="#k-sec-5-2"><span class="k-dot" style="background:#2B6CB0"></span>读卡器端听到了什么</a>
+  <div class="k-g1">6 · 一次识别：ISO14443A 与 RC522</div>
+  <div class="k-g1">7 · RC522 内部：主控只写寄存器</div>
+  <a href="#k-sec-7-1"><span class="k-dot" style="background:#2B6CB0"></span>驱动里常见的“读写一个寄存器”</a>
+  <a href="#k-sec-7-2"><span class="k-dot" style="background:#2B6CB0"></span>向下：把帧交给射频</a>
+  <a href="#k-sec-7-3"><span class="k-dot" style="background:#2B6CB0"></span>向上：把波译成字节</a>
+  <div class="k-g1">8 · 数据在卡里怎么存（MIFARE Classic）</div>
+  <a href="#k-sec-8-1"><span class="k-dot" style="background:#2B6CB0"></span>一句话内存图</a>
+  <a href="#k-sec-8-2"><span class="k-dot" style="background:#2B6CB0"></span>每扇区有一把“锁”</a>
+  <div class="k-g1">9 · 安全与局限</div>
+  <a href="#k-sec-9-1"><span class="k-dot" style="background:#2B6CB0"></span>RFID 能做的三件事</a>
+  <a href="#k-sec-9-2"><span class="k-dot" style="background:#2B6CB0"></span>现实局限（务必清楚）</a>
+  <div class="k-g1">10 · 应用与选型速查</div>
+</nav>
+
 <div class="wrap">
 
-<header class="hero">
+<header class="hero" id="k-cover">
   <h1>RFID 射频识别原理分析</h1>
   <p>从电磁场、链路、协议到一次识别 —— 以 13.56 MHz / NXP RC522(MFRC522) 为实例载体</p>
 </header>
@@ -76,7 +145,7 @@
   </ol>
 </nav>
 
-<h2>1 · RFID 是什么：定义与三要素</h2>
+<h2 id="k-sec-1">1 · RFID 是什么：定义与三要素</h2>
 <p style="font-size:15px"><b>RFID（Radio Frequency Identification，射频识别）</b>是利用无线电磁波，不接触即可自动识别目标并读写其携带数据的自动识别技术。“认出是哪张卡”的那串独有数字，就是它存的<b>标识（UID / EPC）</b>。</p>
 <div class="card"><b>任何 RFID 系统都有三要素：</b>
 <table>
@@ -87,8 +156,8 @@
 </table></div>
 <p class="cap">读 UID 只是入口；RFID 真正的价值在<b>能对标签内存读写</b>一个属于你的数据块。</p>
 
-<h2>2 · RFID 怎么分类</h2>
-<h3>按工作频率（决定读距与形态）</h3>
+<h2 id="k-sec-2">2 · RFID 怎么分类</h2>
+<h3 id="k-sec-2-1">按工作频率（决定读距与形态）</h3>
 <div class="card">
 <table>
 <tr><th>频段</th><th>典型频率</th><th>读距</th><th>典型用途</th><th>对应本项目</th></tr>
@@ -99,7 +168,7 @@
 </table>
 <p class="cap">频段越高通常读距越远；但越高越易被金属/水吸收。</p>
 </div>
-<h3>按供电方式（决定卡能否“自己说话”）</h3>
+<h3 id="k-sec-2-2">按供电方式（决定卡能否“自己说话”）</h3>
 <div class="card">
 <table>
 <tr><th>类型</th><th>供电</th><th>能否主动发信号</th><th>读距</th><th>代表</th></tr>
@@ -110,7 +179,7 @@
 </div>
 <p class="note">RFID（含 S50）大多是<b>无源</b>——这是第 3 节的关键。</p>
 
-<h2>3 · 无源标签从哪取电：电磁感应</h2>
+<h2 id="k-sec-3">3 · 无源标签从哪取电：电磁感应</h2>
 <div class="fig">
 
   <!-- 上：S50 白卡实物图（含分层 + 内置线圈 + IC） -->
@@ -163,12 +232,12 @@
   <div class="cap">图 3-1　RC522 实物模块 + S50 白卡的电磁感应取电：把白卡平行贴近模块右侧 PCB 天线区（黄色线圈位置），模块辐射的 13.56 MHz 交变磁场穿过卡片内部的金色线圈（中间层），感应出的电压经整流后给卡内 IC 芯片供电。</div>
 </div>
 <div class="grid2">
-<div class="card"><h3>为什么是 LC 谐振</h3><p>卡片电容+线圈构成 LC 回路，谐振到 13.56 MHz 让感应电压最大。<b>卡片越贴、越平行于天线</b>，耦合越强、电量越足。</p></div>
-<div class="card"><h3>同一个场：既供电又传数据</h3><p>芯片被激活后，既能执行指令，也能在同一个场里“负载调制”回传数据（见第5节）。无源卡既是“被供电的”又是“会发声的”。</p></div>
+<div class="card"><h3 id="k-sec-3-1">为什么是 LC 谐振</h3><p>卡片电容+线圈构成 LC 回路，谐振到 13.56 MHz 让感应电压最大。<b>卡片越贴、越平行于天线</b>，耦合越强、电量越足。</p></div>
+<div class="card"><h3 id="k-sec-3-2">同一个场：既供电又传数据</h3><p>芯片被激活后，既能执行指令，也能在同一个场里“负载调制”回传数据（见第5节）。无源卡既是“被供电的”又是“会发声的”。</p></div>
 </div>
 <div class="warn"><b>工程上为什么读距只有 1–3 cm：</b>稍远磁场就变弱、电压不够“唤醒”；卡下方垫金属会吸收磁场。这是无源 HF RFID 的物理本质，不是故障。</div>
 
-<h2>4 · 前向链路：读卡器 → 标签（发命令）</h2>
+<h2 id="k-sec-4">4 · 前向链路：读卡器 → 标签（发命令）</h2>
 <p>读卡器“喊话”给卡，靠的是把<b>载波(13.56MHz)做成随数据变化的幅度开关</b>，并用一种约定的编码打包成卡片能听懂的“帧”。两种要素对应两种概念：<b>调制(把数据装到载波上)</b>与<b>编码(用什么波形表达 0/1)</b>。</p>
 <div class="card">
 <table>
@@ -194,15 +263,15 @@
 </div>
 <p class="cap">图 4-1　前向链路：把“命令字节”编码再放到 13.56MHz 载波上，用幅度开关方式送往标签。RC522 已在内部代你做这些，只需你写要发的字节。</p>
 
-<h2>5 · 反向链路：标签 → 读卡器（回数据）</h2>
+<h2 id="k-sec-5">5 · 反向链路：标签 → 读卡器（回数据）</h2>
 <p>无源标签电量太弱，不可能像手机那样“自发”反向电波。它的技巧是<b>负载调制</b>：标签内有一个受数据控制的开关电阻，按数据瞬间“改变自身对磁场的‘吃电量’”，这个变化会以微小幅度反射回读卡器天线。</p>
 <div class="grid2">
-<div class="card"><h3>标签端做了什么</h3><p>数据 1/0 控制一个负载在“接”与“断”之间来回，于是标签线圈从磁场吸取的能量忽高忽低 → 在磁场里制造“扰动”。</p></div>
-<div class="card"><h3>读卡器端听到了什么</h3><p>RC522 的高灵敏前端把这个微弱扰动放大、解调（副载波/Manchester 变换）后还原成字节，放进它直通到主控 FIFO 的两 bytes——你看到“UID”就是这么回来的。</p></div>
+<div class="card"><h3 id="k-sec-5-1">标签端做了什么</h3><p>数据 1/0 控制一个负载在“接”与“断”之间来回，于是标签线圈从磁场吸取的能量忽高忽低 → 在磁场里制造“扰动”。</p></div>
+<div class="card"><h3 id="k-sec-5-2">读卡器端听到了什么</h3><p>RC522 的高灵敏前端把这个微弱扰动放大、解调（副载波/Manchester 变换）后还原成字节，放进它直通到主控 FIFO 的两 bytes——你看到“UID”就是这么回来的。</p></div>
 </div>
 <div class="note"><b>常见疑问：</b>读距近除了供电问题，更因为反向是“被动反射”信号极弱，必须靠得很近才会被可靠解调。这也是为何超高频 UHF 用主动反向、读距更远。</div>
 
-<h2>6 · 一次识别：ISO14443A 与 RC522</h2>
+<h2 id="k-sec-6">6 · 一次识别：ISO14443A 与 RC522</h2>
 <p>卡片类(13.56MHz)按 <b>ISO/IEC 14443</b> 通信。RC522 是其中的 <b>Type A</b> 实现。把“一次读卡号”拆成对读卡器可见的几个帧，是理解驱动代码的基础。</p>
 <div class="fig">
 <svg width="880" height="250" viewBox="0 0 880 250">
@@ -230,25 +299,25 @@
 </div>
 <p class="tip">识别到 UID 只是“知道你是谁”。若还要读写你的数据，需要继续 <b>Select(选中)</b> → <b>AuthState(密钥鉴权)</b> → <b>Read/Write(读写块)</b>。RC522 手册把这些封装成一组命令 + 状态机，你要按顺序走。</p>
 
-<h2>7 · RC522 内部：主控只写寄存器</h2>
+<h2 id="k-sec-7">7 · RC522 内部：主控只写寄存器</h2>
 <p>RC522 把所有射频层复杂度封装成寄存器。它内部是一个 <b>MFRC522 状态机</b>：主控写命令寄存器 → RC522 自动收/发 / 校验 / 处理冲突 / 定时超时，结果放在 64 字节 <b>FIFO</b> 里，主控再读回即可。</p>
 <div class="card">
-<h3>驱动里常见的“读写一个寄存器”</h3>
+<h3 id="k-sec-7-1">驱动里常见的“读写一个寄存器”</h3>
 <pre><code><span class="k">写寄存器</span>(CommandReg, 0x0F); <span class="c">// 软件复位</span>
 <span class="k">写寄存器</span>(FIFODataReg, REQA); <span class="c">// 把一帧发出去</span>
 <span class="k">等中断</span>(ComIrqReg);            <span class="c">// 等超时或收到</span>
 读FIFO → 得应答字节            <span class="c">// 卡片回的内容</span></code></pre>
 </div>
 <div class="grid2">
-<div class="card"><h3>向下：把帧交给射频</h3><p>你在 <code>FIFO</code> 里放“REQA”等字节，RC522 会替你做 Miller 编码 + 100%ASK + 上到 13.56MHz 的无数载波周期。你写的是“命令”，它做的是“波”。</p></div>
-<div class="card"><h3>向上：把波译成字节</h3><p>它把自己的 13.56MHz 场里的“负载调制扰动”解调成数据放进 FIFO。你读的字节，其实是远方卡片极微弱“反射”出来的结果。</p></div>
+<div class="card"><h3 id="k-sec-7-2">向下：把帧交给射频</h3><p>你在 <code>FIFO</code> 里放“REQA”等字节，RC522 会替你做 Miller 编码 + 100%ASK + 上到 13.56MHz 的无数载波周期。你写的是“命令”，它做的是“波”。</p></div>
+<div class="card"><h3 id="k-sec-7-3">向上：把波译成字节</h3><p>它把自己的 13.56MHz 场里的“负载调制扰动”解调成数据放进 FIFO。你读的字节，其实是远方卡片极微弱“反射”出来的结果。</p></div>
 </div>
 <div class="warn"><b>为什么 “读 Version=0x92” 不等于能读卡：</b>读版本只证明“SPI 上下行通、寄存器能访问”；读卡还要 RC522 的天线真的能把 13.56MHz 场送出去并收回来（初始化必须把 TxASK、功率、天线开关都配好）。两类问题的修复方向完全不同。</div>
 
-<h2>8 · 数据在卡里怎么存（MIFARE Classic）</h2>
+<h2 id="k-sec-8">8 · 数据在卡里怎么存（MIFARE Classic）</h2>
 <div class="grid2">
 <div class="card">
-<h3>一句话内存图</h3>
+<h3 id="k-sec-8-1">一句话内存图</h3>
 <table>
 <tr><th>扇区</th><th>块</th><th>内容</th></tr>
 <tr><td>扇区 0</td><td>块 0</td><td>厂商块（含 UID，只读）</td></tr>
@@ -258,16 +327,16 @@
 <p class="cap">S50 = 16 扇区 × 4 块 × 16 B ≈ 1 KB（经典结构）。</p>
 </div>
 <div class="card">
-<h3>每扇区有一把“锁”</h3>
+<h3 id="k-sec-8-2">每扇区有一把“锁”</h3>
 <p>读写某扇区的数据块前，须用该扇区的密钥鉴权。有 16 个扇区，就有 16 组独立密钥，扇区间权限互不相通——这就是“不同商家能共用一张卡而不互相越权”的基础。</p>
 </div>
 </div>
 
-<h2>9 · 安全与局限</h2>
+<h2 id="k-sec-9">9 · 安全与局限</h2>
 <div class="card">
-<h3>RFID 能做的三件事</h3>
+<h3 id="k-sec-9-1">RFID 能做的三件事</h3>
 <p>① <b>唯一标识</b>（UID）→ 门禁/考勤“你是谁”；② <b>存数据</b>（扇区读写）→ 余额/卡号/通行权限；③ <b>密钥鉴权</b> → 只有持正确密钥的读写器能碰某些扇区。</p>
-<h3>现实局限（务必清楚）</h3>
+<h3 id="k-sec-9-2">现实局限（务必清楚）</h3>
 <table>
 <tr><th style="width:40%">局限</th><th>说明 / 应对</th></tr>
 <tr><td>MIFARE Classic 加密已偏弱</td><td>曾被破解演示；教学/一般门禁足够，但<span class="warn">不建议用于高安全支付/身份证级别</span>的正式场景。高安全请用 DESFire、SE 等更先进标签。</td></tr>
@@ -277,7 +346,7 @@
 </table>
 </div>
 
-<h2>10 · 应用与选型速查</h2>
+<h2 id="k-sec-10">10 · 应用与选型速查</h2>
 <div class="card">
 <table>
 <tr><th>需求</th><th>推荐配置</th><th>说明</th></tr>
@@ -291,5 +360,22 @@
 
 <footer>RFID 原理分析 · 以 NXP RC522 / 13.56 MHz 为载体 · 供学习参考</footer>
 </div>
-</body>
+<script>
+(function(){
+  var burger=document.getElementById('kBurger'),toc=document.getElementById('kToc'),mask=document.getElementById('kMask');
+  function closeNav(){if(toc)toc.classList.remove('k-open');if(mask)mask.classList.remove('k-open');}
+  if(burger)burger.addEventListener('click',function(){if(toc&&toc.classList.contains('k-open')){closeNav();}else{if(toc)toc.classList.add('k-open');if(mask)mask.classList.add('k-open');}});
+  if(mask)mask.addEventListener('click',closeNav);
+  var links=document.querySelectorAll('.k-toc a[href^="#"]');
+  function onScroll(){
+    links.forEach(function(a){
+      var id=a.getAttribute('href').slice(1),el=document.getElementById(id);
+      if(el&&el.getBoundingClientRect().top<130)a.classList.add('k-active');
+      else a.classList.remove('k-active');
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+</script></body>
 </html>
