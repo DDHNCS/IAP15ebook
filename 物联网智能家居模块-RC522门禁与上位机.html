@@ -141,12 +141,87 @@
     h1, h2, h3, h4 { break-after: avoid; }
   }
 </style>
-</head>
-<body>
+<style id="knav-css">
+:root{--k-ink:#1A2E4B;--k-accent:#E8720C;--k-paper:#fff;--k-paper2:#F7F9FC;--k-line:#D6DEE9;--k-text2:#5A6B82;}
+.k-topbar{position:fixed;top:0;left:0;right:0;z-index:1200;background:rgba(26,46,75,.97);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;height:56px;box-shadow:0 2px 10px rgba(26,46,75,.25);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-topbar .k-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:.3px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.k-topbar .k-brand .k-sub{color:#AFC3DE;font-weight:400;font-size:12px;}
+.k-topbar .k-spacer{flex:1;}
+.k-topbar .k-tool{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;padding:7px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:none;min-height:36px;white-space:nowrap;}
+.k-topbar .k-tool:hover{background:rgba(255,255,255,.22);color:#fff;}
+.k-burger{display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;min-width:40px;min-height:40px;}
+.k-toc{position:fixed;top:56px;bottom:0;left:0;width:250px;background:var(--k-paper);border-right:1px solid var(--k-line);overflow-y:auto;padding:18px 0 30px;z-index:1100;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;}
+.k-toc .k-toc-title{font-size:12px;color:var(--k-text2);letter-spacing:2px;font-weight:700;padding:0 20px 10px;text-transform:uppercase;}
+.k-toc a{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:13px;color:var(--k-text2);border-left:3px solid transparent;text-decoration:none;transition:all .15s;line-height:1.45;}
+.k-toc a .k-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+.k-toc a:hover{color:var(--k-ink);background:var(--k-paper2);}
+.k-toc a.k-active{color:var(--k-ink);font-weight:700;border-left-color:var(--k-accent);background:var(--k-paper2);}
+.k-toc a.k-active .k-dot{background:var(--k-accent);}
+.k-toc .k-g1{margin-top:12px;font-size:12px;color:var(--k-text2);padding:7px 20px 3px;font-weight:700;}
+.k-toc .k-back{margin-bottom:4px;}
+.k-mask{display:none;position:fixed;inset:0;background:rgba(15,25,40,.45);z-index:1050;}
+.k-mask.k-open{display:block;}
+html.k-on{scroll-padding-top:70px;}
+@media (min-width:961px){
+  body.k-on .wrap{margin-left:282px;max-width:1080px;}
+}
+@media (max-width:960px){
+  .k-toc{left:-262px;transition:left .25s;}
+  .k-toc.k-open{left:0;box-shadow:4px 0 18px rgba(0,0,0,.18);}
+  .k-burger{display:block;}
+}
+@media print{
+  .k-topbar,.k-toc,.k-mask{display:none!important;}
+  body.k-on .wrap{margin-left:0!important;max-width:1000px!important;}
+}
+</style></head>
+<body class="k-on">
+<header class="k-topbar">
+  <button class="k-burger" id="kBurger" aria-label="打开目录"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="k-brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFC38A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span><span class="k-sub">· 活页式教材</span></span></div>
+  <div class="k-spacer"></div>
+  <a class="k-tool" href="index.html">← 返回目录</a>
+  <button class="k-tool" onclick="window.print()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> 打印本页</button>
+</header>
+<div class="k-mask" id="kMask"></div>
+<nav class="k-toc" id="kToc">
+  <div class="k-toc-title">活页索引</div>
+  <a href="#k-cover"><span class="k-dot" style="background:#1A2E4B"></span>封面与教材信息</a>
+  <div class="k-g1">学习目标与任务描述（4 课时两部分）</div>
+  <a href="#ch1-1"><span class="k-dot" style="background:#2B6CB0"></span>课时分配</a>
+  <a href="#ch1-2"><span class="k-dot" style="background:#2B6CB0"></span>学习目标（知识与技能分层）</a>
+  <div class="k-g1">知识链接：RFID/NFC · 13.56MHz · 软件 SPI · 协议流程</div>
+  <a href="#ch2-1"><span class="k-dot" style="background:#2B6CB0"></span>2.1 RFID 与 NFC：一张卡凭什么"碰一下就知道是谁"</a>
+  <a href="#ch2-2"><span class="k-dot" style="background:#2B6CB0"></span>2.2 读一张卡要走几步：REQA → ATQA → ANTICOLL → UID</a>
+  <a href="#ch2-3"><span class="k-dot" style="background:#2B6CB0"></span>2.3 软件 SPI：用 4 个 IO 模拟时钟</a>
+  <div class="k-g1">任务 1 · 认识 RC522 与硬件接线</div>
+  <a href="#ch3-1"><span class="k-dot" style="background:#2B6CB0"></span>3.1 RC522 模块引脚定义</a>
+  <a href="#ch3-2"><span class="k-dot" style="background:#2B6CB0"></span>3.2 与 IAP15L2K61S2 的接线表</a>
+  <a href="#ch3-3"><span class="k-dot" style="background:#2B6CB0"></span>3.3 串口线（同时是烧录口）</a>
+  <a href="#ch3-4"><span class="k-dot" style="background:#2B6CB0"></span>3.4 第一次上电：先认芯片</a>
+  <div class="k-g1">读卡程序与串口测试（REQA / ANTICOLL / UID）</div>
+  <a href="#ch4-1"><span class="k-dot" style="background:#2B6CB0"></span>4.1 主循环流程</a>
+  <a href="#ch4-2"><span class="k-dot" style="background:#2B6CB0"></span>4.2 串口实际输出（白卡贴近时）</a>
+  <a href="#ch4-3"><span class="k-dot" style="background:#2B6CB0"></span>4.3 字段逐个解释</a>
+  <a href="#ch4-4"><span class="k-dot" style="background:#2B6CB0"></span>4.4 软件 SPI 读写函数（rc522_soft.c 核心）</a>
+  <div class="k-g1">HTML 上位机与门禁管理（Web Serial 增删卡）</div>
+  <a href="#ch5-1"><span class="k-dot" style="background:#2B6CB0"></span>5.1 Web Serial：浏览器直接碰串口</a>
+  <a href="#ch5-2"><span class="k-dot" style="background:#2B6CB0"></span>5.2 自定义命令协议</a>
+  <a href="#ch5-3"><span class="k-dot" style="background:#2B6CB0"></span>5.3 上位机核心代码逐段解析</a>
+  <div class="k-g1">任务单 / 实操 · 验收</div>
+  <a href="#ch6-1"><span class="k-dot" style="background:#2B6CB0"></span>【工作任务】RC522 门禁 + Web 上位机</a>
+  <a href="#ch6-2"><span class="k-dot" style="background:#2B6CB0"></span>操作步骤</a>
+  <a href="#ch6-3"><span class="k-dot" style="background:#2B6CB0"></span>验收标准</a>
+  <div class="k-g1">小结与延伸</div>
+  <a href="#ch7-1"><span class="k-dot" style="background:#2B6CB0"></span>7.1 本节小结</a>
+  <a href="#ch7-2"><span class="k-dot" style="background:#2B6CB0"></span>7.2 知识脉络</a>
+  <a href="#ch7-3"><span class="k-dot" style="background:#2B6CB0"></span>7.3 延伸思考</a>
+</nav>
+
 <div class="wrap">
 
   <!-- ================= 封面 ================= -->
-  <div class="hero">
+  <div class="hero" id="k-cover">
     <span class="kicker">物联网技术 · 活页式教材 · 19</span>
     <h1>物联网智能家居模块：<br>RC522 RFID 门禁与上位机管理</h1>
     <p class="subtitle">从 13.56MHz 射频识别到 Web 串口上位机——一块 RC522 模块、一张白卡、一个 HTML 页面，搭出能"刷卡开门、电脑加卡删卡"的最小智能门禁。4 课时，分原理与串口测试、上位机设计两部分。</p>
@@ -186,14 +261,14 @@
       <b>【任务描述】</b>理解 RFID/NFC 原理与 RC522 工作流程，用软件 SPI 驱动 RC522 读白卡 UID 并在串口打印；在此基础上编写 HTML 上位机（Web Serial），实现"刷卡识别 → LED 指示开门 → 上位机加卡/删卡/查状态"。
     </div>
 
-    <h3>课时分配</h3>
+    <h3 id="ch1-1">课时分配</h3>
     <table>
       <tr><th style="width:14%;">课时</th><th style="width:30%;">阶段</th><th>内容</th></tr>
       <tr class="hlrow"><td>第 1-2 课时</td><td>第一部分：原理与串口测试</td><td>NFC/RFID 原理、13.56MHz 载波、Mifare Classic 帧格式；软件 SPI 时序；RC522 硬件接线；读卡程序烧录，串口看版本号与 UID。</td></tr>
       <tr class="hlrow"><td>第 3-4 课时</td><td>第二部分：HTML 上位机</td><td>Web Serial API 原理；自定义命令协议（ADD/DEL/LIST/STATUS）；上位机页面连接串口、发命令、收 ACK；刷卡事件上报与 LED/数码管状态联动。</td></tr>
     </table>
 
-    <h3>学习目标（知识与技能分层）</h3>
+    <h3 id="ch1-2">学习目标（知识与技能分层）</h3>
     <div class="obj">
       <div class="badge" style="background:#1E6FD8;">知识</div>
       <p>说清 RFID/NFC 区别、13.56MHz 载波、Mifare Classic 的 ATQA/SAK/UID 三层数据。</p>
@@ -222,7 +297,7 @@
     <h2 class="chap-title">知识链接：RFID/NFC · 13.56MHz · 软件 SPI · 协议流程</h2>
     <p class="chap-lead">RC522 是 NXP 的 13.56MHz 射频读写芯片，内部集成了模拟前端、调制解调、FIFO 和 SPI 接口——MCU 只要用 SPI 给它发命令，它就负责和卡片"对话"。</p>
 
-    <h3>2.1 RFID 与 NFC：一张卡凭什么"碰一下就知道是谁"</h3>
+    <h3 id="ch2-1">2.1 RFID 与 NFC：一张卡凭什么"碰一下就知道是谁"</h3>
     <div class="grid">
       <div class="card">
         <div class="ic" style="background:#1E6FD8;">RFID</div>
@@ -241,7 +316,7 @@
       </div>
     </div>
 
-    <h3>2.2 读一张卡要走几步：REQA → ATQA → ANTICOLL → UID</h3>
+    <h3 id="ch2-2">2.2 读一张卡要走几步：REQA → ATQA → ANTICOLL → UID</h3>
     <div class="fig">
       <svg viewBox="0 0 940 210" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,Arial,sans-serif">
         <defs>
@@ -277,7 +352,7 @@
       <div class="cap">图 2-1  RC522 读卡四步流程（示意）</div>
     </div>
 
-    <h3>2.3 软件 SPI：用 4 个 IO 模拟时钟</h3>
+    <h3 id="ch2-3">2.3 软件 SPI：用 4 个 IO 模拟时钟</h3>
     <div class="fig">
       <svg viewBox="0 0 940 200" xmlns="http://www.w3.org/2000/svg" font-family="Consolas,'Courier New',monospace" font-size="12">
         <text x="470" y="24" text-anchor="middle" fill="#0E2A45" font-family="Microsoft YaHei" font-size="14" font-weight="bold">SPI 读写字节：MSB 先发，SCK 上升沿采样（CPOL=0/CPHA=0）</text>
@@ -304,7 +379,7 @@
     <h2 class="chap-title">任务 1 · 认识 RC522 与硬件接线</h2>
     <p class="chap-lead">RC522 模块就是"小板子 + 天线线圈"，7 个引脚：电源、地、SPI 四线、复位。IRQ 本单元不用，悬空即可。</p>
 
-    <h3>3.1 RC522 模块引脚定义</h3>
+    <h3 id="ch3-1">3.1 RC522 模块引脚定义</h3>
     <div class="fig">
       <svg viewBox="0 0 940 200" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,Arial,sans-serif" font-size="12">
         <rect x="320" y="30" width="300" height="140" rx="14" fill="#EAF6FF" stroke="#1E6FD8" stroke-width="2"/>
@@ -323,7 +398,7 @@
       <div class="cap">图 3-1  RC522 模块引脚（示意）</div>
     </div>
 
-    <h3>3.2 与 IAP15L2K61S2 的接线表</h3>
+    <h3 id="ch3-2">3.2 与 IAP15L2K61S2 的接线表</h3>
     <table>
       <tr><th style="width:22%;">RC522 引脚</th><th style="width:22%;">IAP15 引脚</th><th>说明</th></tr>
       <tr class="hlrow"><td>SDA / NSS</td><td class="c">P1.2</td><td>片选，低有效；软件 SPI 由它决定"选中/释放"</td></tr>
@@ -336,10 +411,10 @@
       <tr><td>GND</td><td>GND</td><td>共地</td></tr>
     </table>
 
-    <h3>3.3 串口线（同时是烧录口）</h3>
+    <h3 id="ch3-3">3.3 串口线（同时是烧录口）</h3>
     <div class="note">USB 转 TTL：<span class="c">RX → P3.0（MCU RxD）</span>、<span class="c">TX → P3.1（MCU TxD）</span>、GND→GND。波特率 9600，12MHz IRC。</div>
 
-    <h3>3.4 第一次上电：先认芯片</h3>
+    <h3 id="ch3-4">3.4 第一次上电：先认芯片</h3>
     <p>烧录读卡程序后，串口应先打印一行芯片版本：</p>
 <pre class="code"><code>RC522 Ver=<span class="tok-n">92</span></code></pre>
     <div class="tip"><b>Ver=92 的含义</b>：读 ChipRevision 寄存器（0x37）= <span class="c">0x92</span>，说明是 MFRC522 v2.0 正版；若打印 <span class="c">Ver=00</span> 或 <span class="c">Ver=FF</span>，先查 SPI 四线接线与 3.3V 供电。</div>
@@ -351,7 +426,7 @@
     <h2 class="chap-title">读卡程序与串口测试（REQA / ANTICOLL / UID）</h2>
     <p class="chap-lead">程序主循环每隔约 200ms 发一次 REQA，有卡就继续走 ANTICOLL 读 UID。串口打印出的每个字段都要能对上。</p>
 
-    <h3>4.1 主循环流程</h3>
+    <h3 id="ch4-1">4.1 主循环流程</h3>
 <pre class="code"><code><span class="tok-k">void</span> <span class="tok-m">main</span>(<span class="tok-k">void</span>)
 {
   Uart1_Init();          <span class="tok-c">/* 9600 串口 */</span>
@@ -373,12 +448,12 @@
   }
 }</code></pre>
 
-    <h3>4.2 串口实际输出（白卡贴近时）</h3>
+    <h3 id="ch4-2">4.2 串口实际输出（白卡贴近时）</h3>
 <pre class="code"><code>REQA  st=OK  irq=<span class="tok-n">64</span>  err=<span class="tok-n">00</span>  fifo=<span class="tok-n">00</span>  ATQA=<span class="tok-n">0400</span>
 AColl st=OK  irq=<span class="tok-n">64</span>  err=<span class="tok-n">00</span>  fifo=<span class="tok-n">00</span>
 UID=<span class="tok-s">EA5DDD06</span>  BCC=<span class="tok-n">6C</span></code></pre>
 
-    <h3>4.3 字段逐个解释</h3>
+    <h3 id="ch4-3">4.3 字段逐个解释</h3>
     <table>
       <tr><th style="width:22%;">字段</th><th style="width:22%;">本例值</th><th>含义</th></tr>
       <tr class="hlrow"><td>st</td><td class="c">OK / ERR</td><td>该步是否成功。ERR 时 irq=0x44 多半是场里没卡（距离远/没放好）。</td></tr>
@@ -391,7 +466,7 @@ UID=<span class="tok-s">EA5DDD06</span>  BCC=<span class="tok-n">6C</span></code
 
     <div class="tip"><b>常见现象</b>：卡没贴近时反复 <span class="c">st=ERR irq=44</span>；贴近瞬间出现 <span class="c">ATQA=0400</span> 但 <span class="c">AColl=ERR</span>——多半是距离抖动，重放卡即可；若稳定读不出 UID，查 MOSI/MISO 是否接反。</div>
 
-    <h3>4.4 软件 SPI 读写函数（rc522_soft.c 核心）</h3>
+    <h3 id="ch4-4">4.4 软件 SPI 读写函数（rc522_soft.c 核心）</h3>
 <pre class="code"><code><span class="tok-k">unsigned</span> <span class="tok-k">char</span> SpiSoft_Rw(<span class="tok-k">unsigned</span> <span class="tok-k">char</span> dat)
 {
   <span class="tok-k">unsigned</span> <span class="tok-k">char</span> i, rx = <span class="tok-n">0</span>;
@@ -425,7 +500,7 @@ UID=<span class="tok-s">EA5DDD06</span>  BCC=<span class="tok-n">6C</span></code
     <h2 class="chap-title">HTML 上位机与门禁管理（Web Serial 增删卡）</h2>
     <p class="chap-lead">第二部分：浏览器直接连 USB 转 TTL，不需要安装任何串口助手。一个 HTML 页面就能加卡、删卡、看刷卡事件。</p>
 
-    <h3>5.1 Web Serial：浏览器直接碰串口</h3>
+    <h3 id="ch5-1">5.1 Web Serial：浏览器直接碰串口</h3>
     <div class="fig">
       <svg viewBox="0 0 940 180" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,Arial,sans-serif" font-size="12">
         <defs>
@@ -455,7 +530,7 @@ UID=<span class="tok-s">EA5DDD06</span>  BCC=<span class="tok-n">6C</span></code
       <div class="cap">图 5-1  Web Serial 通信链路（示意）</div>
     </div>
 
-    <h3>5.2 自定义命令协议</h3>
+    <h3 id="ch5-2">5.2 自定义命令协议</h3>
     <table>
       <tr><th style="width:22%;">方向</th><th style="width:32%;">帧格式</th><th>说明</th></tr>
       <tr class="hlrow"><td>上位机→MCU</td><td class="c">ADD,EA5DDD06\n</td><td>把该 UID 加入白名单（下次刷卡即开门）</td></tr>
@@ -466,7 +541,7 @@ UID=<span class="tok-s">EA5DDD06</span>  BCC=<span class="tok-n">6C</span></code
       <tr class="hlrow"><td>MCU→上位机</td><td class="c">EVT=LOCK\n</td><td>5 秒无新刷卡，自动关门（LED 灭）</td></tr>
     </table>
 
-    <h3>5.3 上位机核心代码逐段解析</h3>
+    <h3 id="ch5-3">5.3 上位机核心代码逐段解析</h3>
     <p>上位机 HTML 内嵌一段 &lt;script&gt;，共四块：<b>选串口→打开→循环读→发命令→按行分发</b>。逐段看。</p>
 
     <h4>① 点击"连接"：让浏览器弹串口选择框</h4>
@@ -525,12 +600,12 @@ decoder = <span class="tok-k">new</span> TextDecoder();
     <h2 class="chap-title">任务单 / 实操 · 验收</h2>
     <p class="chap-lead">按两部分走通：先把卡读出来，再把上位机连上来加卡删卡。</p>
 
-    <h3>【工作任务】RC522 门禁 + Web 上位机</h3>
+    <h3 id="ch6-1">【工作任务】RC522 门禁 + Web 上位机</h3>
     <div class="note" style="border-left:4px solid var(--red); background:#FDF0F0;">
       <b>任务要求</b>：① 上电串口打印 <span class="c">RC522 Ver=92</span>；② 白卡贴近时打印 <span class="c">ATQA=0400</span> 与 <span class="c">UID=EA5DDD06 BCC=6C</span>；③ 浏览器连上串口后，发 <span class="c">ADD,EA5DDD06</span> 加卡成功，再刷该卡 LED 亮、上位机显示"门已开"，5 秒后自动 <span class="c">EVT=LOCK</span>；④ 发 <span class="c">DEL,EA5DDD06</span> 后再刷同卡 LED 不亮。
     </div>
 
-    <h3>操作步骤</h3>
+    <h3 id="ch6-2">操作步骤</h3>
     <table>
       <tr><th style="width:7%;">步骤</th><th>做什么</th><th style="width:42%;">要点</th></tr>
       <tr><td>①</td><td>接线</td><td>按 3.2 表接 RC522（3.3V，不接 5V）；USB-TTL 接 P3.0/P3.1。</td></tr>
@@ -540,7 +615,7 @@ decoder = <span class="tok-k">new</span> TextDecoder();
       <tr><td>⑤</td><td>删卡回归</td><td>DEL → 再刷同卡 → LED 不亮、页面报"非法卡"。</td></tr>
     </table>
 
-    <h3>验收标准</h3>
+    <h3 id="ch6-3">验收标准</h3>
     <table>
       <tr><th style="width:22%;">验收项</th><th>标准 / 现象</th><th style="width:12%;">达标</th></tr>
       <tr class="hlrow"><td>芯片识别</td><td>上电打印 <span class="c">Ver=92</span>（非 00/FF）</td><td class="center">☑</td></tr>
@@ -556,10 +631,10 @@ decoder = <span class="tok-k">new</span> TextDecoder();
     <span class="chap-no">第 7 章</span>
     <h2 class="chap-title">小结与延伸</h2>
 
-    <h3>7.1 本节小结</h3>
+    <h3 id="ch7-1">7.1 本节小结</h3>
     <div class="note"><b>小结</b>：RC522 门禁把前面学过的四件事串成了一条完整产品链——<b>软件 SPI（第 7 单元）+ 串口通信（第 4 单元）+ 协议解析（第 14 单元 Modbus 思路）+ 浏览器上位机</b>。MCU 只做"读卡 + 比对 + 上报"，把"谁是合法卡"的管理搬到了浏览器里。</div>
 
-    <h3>7.2 知识脉络</h3>
+    <h3 id="ch7-2">7.2 知识脉络</h3>
     <div class="fig">
       <svg viewBox="0 0 940 170" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei,Arial,sans-serif" font-size="12.5">
         <defs>
@@ -590,7 +665,7 @@ decoder = <span class="tok-k">new</span> TextDecoder();
       <div class="cap">图 7-1  四层能力组装（示意）</div>
     </div>
 
-    <h3>7.3 延伸思考</h3>
+    <h3 id="ch7-3">7.3 延伸思考</h3>
     <div class="tip"><b>拓展作业</b>：① 白名单存 Flash（AT24C02，第 8 单元），断电不丢；② 把舵机接 P4.6 做真实开门（角度 0°=锁、90°=开）；③ 加密码键盘，刷卡 + 密码双因素。</div>
     <div class="note"><b>学习提示</b>：调 RC522 时先看 <span class="c">Ver</span> 再看 <span class="c">irq</span>——Ver 不对查 SPI，irq=0x44 查天线距离，ATQA 有了但 UID 出不来查 MOSI/MISO 是否接反。</div>
   </section>
@@ -619,5 +694,22 @@ decoder = <span class="tok-k">new</span> TextDecoder();
   }
 })();
 </script>
-</body>
+<script>
+(function(){
+  var burger=document.getElementById('kBurger'),toc=document.getElementById('kToc'),mask=document.getElementById('kMask');
+  function closeNav(){if(toc)toc.classList.remove('k-open');if(mask)mask.classList.remove('k-open');}
+  if(burger)burger.addEventListener('click',function(){if(toc&&toc.classList.contains('k-open')){closeNav();}else{if(toc)toc.classList.add('k-open');if(mask)mask.classList.add('k-open');}});
+  if(mask)mask.addEventListener('click',closeNav);
+  var links=document.querySelectorAll('.k-toc a[href^="#"]');
+  function onScroll(){
+    links.forEach(function(a){
+      var id=a.getAttribute('href').slice(1),el=document.getElementById(id);
+      if(el&&el.getBoundingClientRect().top<130)a.classList.add('k-active');
+      else a.classList.remove('k-active');
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+</script></body>
 </html>
